@@ -14,7 +14,7 @@ const getNoticiaParamsSchema = z.object({
     })
 });
 
-const getNoticiaRoute = createRoute({
+export const getNoticiaRoute = createRoute({
   method: "get",
   path: "/api/noticias/{id}",
   request: {
@@ -31,5 +31,3 @@ const getNoticiaRoute = createRoute({
     },
   },
 });
-
-export default getNoticiaRoute;

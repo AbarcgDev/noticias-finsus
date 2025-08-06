@@ -1,5 +1,4 @@
-import { NotFoundHandler } from "hono";
-import { Context } from "hono/jsx";
+import { Context, NotFoundHandler } from "hono";
 
 const notFound: NotFoundHandler = (c: Context) => {
   c.status(404)
