@@ -4,7 +4,9 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 import { getNoticiaRoute } from "./infrastructure/routes/getNoticia.route";
 import { Context } from "hono";
 import { GetAllFuentesRoute } from "./infrastructure/routes/getAllFuentes.route";
-import { handleGetAllFuentesReq } from "./handlers/handleGetAllFuentesReq";
+import { handleGetAllFuentesReq } from "./infrastructure/handlers/handleGetAllFuentesReq";
+import { handleGetNoticiasReq } from "./infrastructure/handlers/handleGetNoticias";
+import { GetNoticiasRoute } from "./infrastructure/routes/getNoticias.route";
 
 const app = new OpenAPIHono<{ Bindings: CloudflareBindings }>({
   strict: false,
@@ -21,9 +23,12 @@ app.openapi(getNoticiaRoute, (c: Context) => {
 
 app.openapi(GetAllFuentesRoute, handleGetAllFuentesReq);
 
+app.openapi(GetNoticiasRoute, handleGetNoticiasReq);
+
 app.notFound(notFound);
 
 app.onError(onError);
+
 
 app.doc('/doc', {
   openapi: '3.0.0',

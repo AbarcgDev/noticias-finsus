@@ -8,7 +8,8 @@
 	},
 	"dependencies": {
 		"@hono/zod-openapi": "^1.1.0",
-		"hono": "^4.8.12"
+		"hono": "^4.8.12",
+		"fast-xml-parser": "^4.2.4"
 	},
 	"devDependencies": {
 		"wrangler": "^4.28.0"

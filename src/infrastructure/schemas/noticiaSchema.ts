@@ -7,9 +7,11 @@ const NoticiaSchema = z.object({
   title: z.string().openapi({
     example: "Titular De Noticia Importante"
   }),
-  description: z.string().openapi({
+  content: z.string().openapi({
     example: "La noticia importante habla de algo muy importante"
-  })
+  }),
+  publicationDate: z.coerce.date().openapi({ example: "2023-10-01T12:00:00Z" }),
+  source: z.string().openapi({ example: "Fuente de la Noticia" }),
 }).openapi("Noticia");
 
 export default NoticiaSchema;
