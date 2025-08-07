@@ -4,7 +4,8 @@ import { IWriteFuente } from "../../domain/interfaces/IWriteFuente";
 
 export class FuentesRepositoryD1 implements IWriteFuente, IReadFuente {
     constructor(private readonly db: any) { }
-    findById(id: string): Promise<Fuente | null> {
+
+    async findById(id: string): Promise<Fuente | null> {
         const result = this.db.prepare("SELECT * FROM fuentes WHERE id = ?")
             .bind(id).first();
         if (!result) {
@@ -12,21 +13,33 @@ export class FuentesRepositoryD1 implements IWriteFuente, IReadFuente {
         }
         return Promise.resolve(Fuente.fromObject(result));
     }
-    findAll(): Promise<Fuente[]> {
-        const { results } = this.db.prepare("SELECT * FROM fuentes").all();
+
+    async findAll(): Promise<Fuente[]> {
+        const { results } = await this.db.prepare("SELECT * FROM fuentes").all();
         let resolution: Fuente[] = [];
         if (results) {
-            resolution = results.map((row: Object) => Fuente.fromObject(row));
+            resolution = results.map((row: any) => Fuente.fromObject(
+                {
+                    id: row.id,
+                    name: row.name,
+                    rssUrl: row.rss_url,
+                    active: row.active === 1,
+                    createdAt: row.created_at,
+                    updatedAt: row.updated_at,
+                }));
         }
         return Promise.resolve(resolution);
     }
-    create(fuente: Fuente): Promise<Fuente> {
+
+    async create(fuente: Fuente): Promise<Fuente> {
         throw new Error("Method not implemented.");
     }
-    update(fuente: Fuente): Promise<Fuente> {
+
+    async update(fuente: Fuente): Promise<Fuente> {
         throw new Error("Method not implemented.");
     }
-    delete(id: string): Promise<void> {
+
+    async delete(id: string): Promise<void> {
         throw new Error("Method not implemented.");
     }
 

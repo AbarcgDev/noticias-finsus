@@ -4,9 +4,7 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 import { getNoticiaRoute } from "./infrastructure/routes/getNoticia.route";
 import { Context } from "hono";
 import { GetAllFuentesRoute } from "./infrastructure/routes/getAllFuentes.route";
-import { Fuente } from "./domain/entities/Fuente";
-import { FuentesRepositoryD1 } from "./infrastructure/repositories/FuentesRepositoryD1";
-import { GetAllFuentes } from "./application/use-cases/GetAllFuentes";
+import { handleGetAllFuentesReq } from "./handlers/handleGetAllFuentesReq";
 
 const app = new OpenAPIHono<{ Bindings: CloudflareBindings }>({
   strict: false,
@@ -21,21 +19,7 @@ app.openapi(getNoticiaRoute, (c: Context) => {
   })
 });
 
-app.openapi(GetAllFuentesRoute, async (c: Context) => {
-  const repo = new FuentesRepositoryD1(c.env.DB);
-  const useCase = new GetAllFuentes(repo);
-  const fuentes = await useCase.execute();
-
-  return c.json(fuentes.map((fuente: Fuente) => ({
-    id: fuente.id,
-    name: fuente.name,
-    rssUrl: fuente.rssUrl,
-    active: fuente.active,
-    createdAt: fuente.createdAt.toISOString(),
-    updatedAt: fuente.updatedAt.toISOString(),
-  })), { status: 200 });
-});
-
+app.openapi(GetAllFuentesRoute, handleGetAllFuentesReq);
 
 app.notFound(notFound);
 
