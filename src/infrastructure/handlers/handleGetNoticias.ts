@@ -1,11 +1,11 @@
 import { GetNoticiasFromRss } from "../../application/use-cases/GetNoticiasFromRss";
-import { Noticia } from "../../domain/entities/Noticia";
-import { FeedParserGateway } from "../gateways/FeedParserGateway";
-import { HttpRssFeedGateway } from "../gateways/HttpRssFeedGateway";
-import { FuentesRepositoryD1 } from "../repositories/FuentesRepositoryD1";
+import { Noticia } from "../../domain/NoticiaContext/Noticia";
+import { FeedParserGateway } from "../services/RssFeedParser";
+import { HttpRssFeedGateway } from "../services/HttpRssFeed";
+import { FuentesRepositoryD1 } from "../persistence/FuentesRepositoryD1";
 import { Context } from "hono";
 import NoticiaSchema from "../schemas/noticiaSchema";
-import { NoticiasCensorGateway } from "../gateways/NoticiasCensorGateway";
+import { NoticiasCensorGateway } from "../services/NoticiasCensor";
 
 export const handleGetNoticiasReq = async (c: Context) => {
     try {

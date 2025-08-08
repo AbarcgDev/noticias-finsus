@@ -1,7 +1,7 @@
 import { Context } from "hono";
-import { FuentesRepositoryD1 } from "../repositories/FuentesRepositoryD1";
+import { FuentesRepositoryD1 } from "../persistence/FuentesRepositoryD1";
 import { GetAllFuentes } from "../../application/use-cases/GetAllFuentes";
-import { Fuente } from "../../domain/entities/Fuente";
+import { Fuente } from "../../domain/FuenteContext/Fuente";
 
 
 export const handleGetAllFuentesReq = async (c: Context) => {

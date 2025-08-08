@@ -1,9 +1,9 @@
-import { Noticia } from "../../domain/entities/Noticia";
-import { IReadFuente } from "../../domain/interfaces/IReadFuente";
-import { IWriteNoticia } from "../../domain/interfaces/IWriteNoticia";
-import { ICensorNoticia } from "../interfaces/ICensorNoticia";
-import { IParseNoticiasFromXml } from "../interfaces/IParseNoticiasFromXml.ts";
-import { IReadRssFeed } from "../interfaces/IReadRssFeed";
+import { Noticia } from "../../domain/NoticiaContext/Noticia";
+import { IReadFuente } from "../../domain/FuenteContext/IReadFuente";
+import { IWriteNoticia } from "../../domain/NoticiaContext/IWriteNoticia";
+import { ICensorNoticia } from "../../domain/NoticiaContext/ICensorNoticia";
+import { IReadRssFeed } from "../../domain/NoticiaContext/IReadRssFeed";
+import { IParseNoticiasFromXml } from "../../domain/NoticiaContext/IParseNoticiasFromXml.ts";
 
 export class GetNoticiasFromRss {
     constructor(

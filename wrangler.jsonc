@@ -17,20 +17,19 @@
 	},
 	"d1_databases": [
 		{
-			"database_id": "0f1e2d3c4b5a6f7e8d9c0b1a2b3c4d5e",
+			"database_id": "690976c3-d219-4d32-8bdb-94c63d4bf564",
 			"binding": "DB",
-			"database_name": "noticias-finsus",
-			"migrations": "./migrations"
+			"database_name": "noticiero-finsus",
+			"migrations_dir": "./migrations"
 		}
 	],
 	"observability": {
 		"enabled": true,
 	},
-	"triggers": {
-		"crons": [
-			"0 20 * * 0 TZ=America/Mexico_City"
-		]
-	},
+	"triggers": {},
+	"ai": {
+		"binding": "AI"
+	}
 	/**
    * Smart Placement
    * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

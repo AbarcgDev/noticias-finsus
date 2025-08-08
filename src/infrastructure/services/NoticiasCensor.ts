@@ -1,10 +1,10 @@
-import { ICensorNoticia } from "../../application/interfaces/ICensorNoticia";
-import { Noticia } from "../../domain/entities/Noticia";
+import { ICensorNoticia } from "../../domain/NoticiaContext/ICensorNoticia";
+import { Noticia } from "../../domain/NoticiaContext/Noticia";
 
 export class NoticiasCensorGateway implements ICensorNoticia {
     censor(noticia: Noticia): Boolean {
         const forbiddenKeywords = [
-            "politica",
+            "política",
             "violencia",
             "discriminación",
             "sheinbaum",

@@ -1,4 +1,4 @@
-import { IReadRssFeed } from "../../application/interfaces/IReadRssFeed";
+import { IReadRssFeed } from "../../domain/NoticiaContext/IReadRssFeed";
 
 export class HttpRssFeedGateway implements IReadRssFeed {
     async readRssFromUrl(url: string): Promise<string> {

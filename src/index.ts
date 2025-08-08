@@ -7,6 +7,9 @@ import { GetAllFuentesRoute } from "./infrastructure/routes/getAllFuentes.route"
 import { handleGetAllFuentesReq } from "./infrastructure/handlers/handleGetAllFuentesReq";
 import { handleGetNoticiasReq } from "./infrastructure/handlers/handleGetNoticias";
 import { GetNoticiasRoute } from "./infrastructure/routes/getNoticias.route";
+import { GuionGeneration } from "./infrastructure/ai/GuionGeneration";
+import { GenerateGuionRoute } from "./infrastructure/routes/generateGuionRoute";
+import { handleGetGuion } from "./infrastructure/handlers/handleGetGuion";
 
 const app = new OpenAPIHono<{ Bindings: Cloudflare }>({
   strict: false,
@@ -15,6 +18,8 @@ const app = new OpenAPIHono<{ Bindings: Cloudflare }>({
 app.openapi(GetAllFuentesRoute, handleGetAllFuentesReq);
 
 app.openapi(GetNoticiasRoute, handleGetNoticiasReq);
+
+app.openapi(GenerateGuionRoute, handleGetGuion);
 
 app.notFound(notFound);
 
