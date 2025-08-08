@@ -8,7 +8,7 @@ import { handleGetAllFuentesReq } from "./infrastructure/handlers/handleGetAllFu
 import { handleGetNoticiasReq } from "./infrastructure/handlers/handleGetNoticias";
 import { GetNoticiasRoute } from "./infrastructure/routes/getNoticias.route";
 
-const app = new OpenAPIHono<{ Bindings: CloudflareBindings }>({
+const app = new OpenAPIHono<{ Bindings: Cloudflare }>({
   strict: false,
 });
 
@@ -39,5 +39,5 @@ app.doc('/doc', {
 });
 
 export default {
-  fetch: app.fetch
+  fetch: app.fetch,
 };

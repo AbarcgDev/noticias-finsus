@@ -26,6 +26,11 @@
 	"observability": {
 		"enabled": true,
 	},
+	"triggers": {
+		"crons": [
+			"0 20 * * 0 TZ=America/Mexico_City"
+		]
+	},
 	/**
    * Smart Placement
    * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

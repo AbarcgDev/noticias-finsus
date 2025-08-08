@@ -14,8 +14,6 @@ export class GetNoticiasFromRss {
     async execute(): Promise<Noticia[]> {
         try {
             const fuentes = await this.readFuente.findAll();
-            const promises = fuentes.map(async fuente => { const xmlString = await this.readRssFeed.readRssFromUrl(fuente.rssUrl) });
-            const xmlStrings = await Promise.all(promises);
             const promesasNoticias = fuentes.map(async fuente => {
                 console.info(`Obteniendo noticias de la fuente: ${fuente.name}`);
                 const xmlString = await this.readRssFeed.readRssFromUrl(fuente.rssUrl);
