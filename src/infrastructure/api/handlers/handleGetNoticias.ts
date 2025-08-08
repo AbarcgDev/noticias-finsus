@@ -1,8 +1,8 @@
-import { GetNoticiasFromRss } from "../../application/use-cases/GetNoticiasFromRss";
-import { Noticia } from "../../domain/entities/Noticia";
-import { FeedParserGateway } from "../gateways/FeedParserGateway";
-import { HttpRssFeedGateway } from "../gateways/HttpRssFeedGateway";
-import { FuentesRepositoryD1 } from "../repositories/FuentesRepositoryD1";
+import { GetNoticiasFromRss } from "../../../application/use-cases/GetNoticiasFromRss";
+import { Noticia } from "../../../domain/entities/Noticia";
+import { FeedParserGateway } from "../../gateways/FeedParserGateway";
+import { HttpRssFeedGateway } from "../../gateways/HttpRssFeedGateway";
+import { FuentesRepositoryD1 } from "../../repositories/FuentesRepositoryD1";
 import { Context } from "hono";
 
 export const handleGetNoticiasReq = async (c: Context) => {

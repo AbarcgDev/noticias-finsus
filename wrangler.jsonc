@@ -6,7 +6,7 @@
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "noticias-finsus",
 	"main": "src/index.ts",
-	"compatibility_date": "2025-08-06",
+	"compatibility_date": "2025-08-03",
 	"dev": {
 		"ip": "0.0.0.0",
 		"port": 8787,
@@ -20,8 +20,7 @@
 			"database_id": "0f1e2d3c4b5a6f7e8d9c0b1a2b3c4d5e",
 			"binding": "DB",
 			"database_name": "noticias-finsus",
-			"migrations": "./migrations"
-		}
+		},
 	],
 	"observability": {
 		"enabled": true,

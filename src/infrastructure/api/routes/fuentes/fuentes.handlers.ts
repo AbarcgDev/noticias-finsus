@@ -1,10 +1,11 @@
+import { ApiRouteHandler } from "@/lib/types";
+import type { ListFuentesRoute } from "@/infrastructure/api/routes/fuentes/listFuentes.route";
 import { Context } from "hono";
-import { FuentesRepositoryD1 } from "../repositories/FuentesRepositoryD1";
-import { GetAllFuentes } from "../../application/use-cases/GetAllFuentes";
-import { Fuente } from "../../domain/entities/Fuente";
+import { FuentesRepositoryD1 } from "@/infrastructure/repositories/FuentesRepositoryD1";
+import { GetAllFuentes } from "@/application/use-cases/GetAllFuentes";
+import { Fuente } from "@/domain/entities/Fuente";
 
-
-export const handleGetAllFuentesReq = async (c: Context) => {
+export const list: ApiRouteHandler<ListFuentesRoute> = async (c: Context) => {
   try {
     console.info("Accediendo a todas las fuentes:");
     const repo = new FuentesRepositoryD1(c.env.DB);
@@ -23,4 +24,4 @@ export const handleGetAllFuentesReq = async (c: Context) => {
     console.error("Error al obtener las fuentes:", error);
     throw new Error("Error al obtener las fuentes");
   }
-}
+};
