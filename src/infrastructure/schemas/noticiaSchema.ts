@@ -7,6 +7,9 @@ const NoticiaSchema = z.object({
   title: z.string().openapi({
     example: "Titular De Noticia Importante"
   }),
+  categories: z.array(z.string()).openapi({
+    example: ["Negocios", "Economía"]
+  }),
   content: z.string().openapi({
     example: "La noticia importante habla de algo muy importante"
   }),

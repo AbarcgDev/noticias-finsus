@@ -12,15 +12,6 @@ const app = new OpenAPIHono<{ Bindings: Cloudflare }>({
   strict: false,
 });
 
-app.openapi(getNoticiaRoute, (c: Context) => {
-  const { id } = c.req.valid("param");
-  return c.json({
-    id: "12323",
-    title: "La Gran Noticia",
-    description: "Sucedio un gran acontecimiento",
-  })
-});
-
 app.openapi(GetAllFuentesRoute, handleGetAllFuentesReq);
 
 app.openapi(GetNoticiasRoute, handleGetNoticiasReq);

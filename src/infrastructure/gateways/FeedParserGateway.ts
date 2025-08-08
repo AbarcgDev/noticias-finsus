@@ -17,16 +17,27 @@ export class FeedParserGateway implements IParseNoticiasFromXml {
                 }
             });
             const feedContent = parser.parse(xmlString);
-            const noticias: Noticia[] = feedContent.rss.channel.item.map((item: any) => {
+            const noticiasPromises: Noticia[] = feedContent.rss.channel.item.map(async (item: any) => {
+                const htmlContent = new Response(item["content:encoded"], {
+                    headers: { 'Content-Type': 'text/html' }
+                });
+                let clearContent = "";
+                const htmlRewriter = new HTMLRewriter()
+                    .on("*", {
+                        text: (text) => {
+                            clearContent += text.text.trim() + " ";
+                        }
+                    });
+                await htmlRewriter.transform(htmlContent).text();
                 return Noticia.fromObject({
                     title: item.title || "",
-                    link: item.link || "",
+                    categories: item.category || [],
                     publicationDate: item.pubDate,
-                    content: item["content:encoded"] || "",
+                    content: clearContent || "",
                     source: feedContent.title || ""
                 });
             });
-            return noticias;
+            return (await Promise.all(noticiasPromises)).flat();
         } catch (error) {
             console.error("Error parsing XML:", error);
             throw error;

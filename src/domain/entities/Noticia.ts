@@ -2,6 +2,7 @@ export class Noticia {
     constructor(
         public id: string = crypto.randomUUID(),
         public title: string,
+        public categories: string[],
         public content: string,
         public publicationDate: Date,
         public source: string,
@@ -11,6 +12,7 @@ export class Noticia {
         return new Noticia(
             obj.id || crypto.randomUUID(),
             obj.title,
+            obj.categories || [],
             obj.content,
             obj.publicationDate,
             obj.source
