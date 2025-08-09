@@ -1,5 +1,5 @@
 import app from "@/app"
 
 export default {
-  fetch: app.fetch
+  fetch: app.fetch,
 };

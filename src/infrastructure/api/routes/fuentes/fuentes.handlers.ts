@@ -1,5 +1,5 @@
 import { ApiRouteHandler } from "@/lib/types";
-import type { ListFuentesRoute } from "@/infrastructure/api/routes/fuentes/listFuentes.route";
+import type { ListFuentesRoute } from "@/infrastructure/api/routes/fuentes/fuentes.routes";
 import { Context } from "hono";
 import { FuentesRepositoryD1 } from "@/infrastructure/repositories/FuentesRepositoryD1";
 import { GetAllFuentes } from "@/application/use-cases/GetAllFuentes";

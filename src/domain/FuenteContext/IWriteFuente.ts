@@ -1,4 +1,4 @@
-import { Fuente } from "../entities/Fuente";
+import { Fuente } from "../FuenteContext/Fuente";
 
 export interface IWriteFuente {
     create(fuente: Fuente): Promise<Fuente>;

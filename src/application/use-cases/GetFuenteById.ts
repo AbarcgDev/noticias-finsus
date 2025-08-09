@@ -1,5 +1,5 @@
-import { Fuente } from "../../domain/entities/Fuente";
-import { IReadFuente } from "../../domain/interfaces/IReadFuente";
+import { Fuente } from "../../domain/FuenteContext/Fuente";
+import { IReadFuente } from "../../domain/FuenteContext/IReadFuente";
 
 export class GetFuenteById {
     constructor(private readonly fuenteRepository: IReadFuente) { }

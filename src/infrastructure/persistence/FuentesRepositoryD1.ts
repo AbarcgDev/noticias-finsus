@@ -1,6 +1,6 @@
-import { Fuente } from "../../domain/entities/Fuente";
-import { IReadFuente } from "../../domain/interfaces/IReadFuente";
-import { IWriteFuente } from "../../domain/interfaces/IWriteFuente";
+import { Fuente } from "../../domain/FuenteContext/Fuente";
+import { IReadFuente } from "../../domain/FuenteContext/IReadFuente";
+import { IWriteFuente } from "../../domain/FuenteContext/IWriteFuente";
 
 export class FuentesRepositoryD1 implements IWriteFuente, IReadFuente {
     constructor(private readonly db: any) { }

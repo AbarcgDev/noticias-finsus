@@ -1,21 +1,21 @@
-import { Noticia } from "../../domain/entities/Noticia";
-import { IReadFuente } from "../../domain/interfaces/IReadFuente";
-import { IWriteNoticia } from "../../domain/interfaces/IWriteNoticia";
-import { IParseNoticiasFromXml } from "../interfaces/IParseNoticiasFromXml.ts";
-import { IReadRssFeed } from "../interfaces/IReadRssFeed";
+import { Noticia } from "../../domain/NoticiaContext/Noticia";
+import { IReadFuente } from "../../domain/FuenteContext/IReadFuente";
+import { IWriteNoticia } from "../../domain/NoticiaContext/IWriteNoticia";
+import { ICensorNoticia } from "../../domain/NoticiaContext/ICensorNoticia";
+import { IReadRssFeed } from "../../domain/NoticiaContext/IReadRssFeed";
+import { IParseNoticiasFromXml } from "../../domain/NoticiaContext/IParseNoticiasFromXml.ts";
 
 export class GetNoticiasFromRss {
     constructor(
         private readonly readFuente: IReadFuente,
         private readonly readRssFeed: IReadRssFeed,
         private readonly rssfeedParser: IParseNoticiasFromXml,
+        private readonly noticiasCensor: ICensorNoticia,
     ) { }
 
     async execute(): Promise<Noticia[]> {
         try {
             const fuentes = await this.readFuente.findAll();
-            const promises = fuentes.map(async fuente => { const xmlString = await this.readRssFeed.readRssFromUrl(fuente.rssUrl) });
-            const xmlStrings = await Promise.all(promises);
             const promesasNoticias = fuentes.map(async fuente => {
                 console.info(`Obteniendo noticias de la fuente: ${fuente.name}`);
                 const xmlString = await this.readRssFeed.readRssFromUrl(fuente.rssUrl);
@@ -23,7 +23,14 @@ export class GetNoticiasFromRss {
                 return parsedNoticias.map(noticia => ({ ...noticia, source: fuente.name }));
             });
             const todasLasNoticias = await Promise.all(promesasNoticias);
-            return todasLasNoticias.flat();
+            const noticiasFiltradas = todasLasNoticias.flat().filter(noticia => {
+                const censor = this.noticiasCensor.censor(noticia)
+                if (censor) {
+                    console.info(`Noticia censurada: ${noticia.title}`);
+                }
+                return !censor;
+            });
+            return noticiasFiltradas;
         }
         catch (error) {
             console.error("Error al obtener noticias desde RSS:", error);
