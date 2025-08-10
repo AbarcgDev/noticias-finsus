@@ -8,8 +8,10 @@
 		"cf-typegen": "wrangler types --env-interface CloudflareBindings"
 	},
 	"dependencies": {
+		"@google/genai": "^1.13.0",
 		"@hono/zod-openapi": "^1.1.0",
 		"fast-xml-parser": "^4.2.4",
+		"genai": "^0.0.18",
 		"hono": "^4.8.12"
 	},
 	"devDependencies": {
