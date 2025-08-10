@@ -1,5 +1,5 @@
-import app from "@/app"
+import resApi from "@/presentation/restApi"
 
 export default {
-  fetch: app.fetch,
+  fetch: resApi.fetch,
 };

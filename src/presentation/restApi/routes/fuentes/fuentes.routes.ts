@@ -1,5 +1,5 @@
 import { createRoute, z } from "@hono/zod-openapi";
-import { FuenteSchema } from "../../schemas/fuenteSchema";
+import { FuenteSchema } from "./fuentes.schema";
 
 export const list = createRoute({
   method: "get",

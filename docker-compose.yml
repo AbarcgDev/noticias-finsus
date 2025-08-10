@@ -3,8 +3,6 @@ services:
     image: node:lts
     container_name: noticias-finsus
     working_dir: /usr/src/app
-    env_file:
-      - .env
     volumes:
       - .:/usr/src/app
     ports:
@@ -12,7 +10,7 @@ services:
     command: sh -c "npm install && npx wrangler types && npx wrangler d1 migrations apply DB --local < /dev/null && npm run dev"
     stdin_open: true
     tty: true
-  
+
   deployer:
     image: node:lts
     container_name: noticias-finsus-deployer

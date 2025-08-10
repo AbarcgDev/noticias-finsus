@@ -1,11 +1,13 @@
 import createApp from "@/lib/createApp";
 import { configureOpenApi } from "@/lib/configureOpenApi";
-import index from "@/infrastructure/api/routes/index.route"
-import fuentes from "@/infrastructure/api/routes/fuentes/fuentes.index"
+import index from "@/presentation/restApi/routes/index.route"
+import fuentes from "@/presentation/restApi/routes/fuentes/fuentes.index"
+import guiones from "@/presentation/restApi/routes/guiones/guiones.index"
 
 const routes = [
   index,
-  fuentes
+  fuentes,
+  guiones
 ]
 
 const app = createApp()

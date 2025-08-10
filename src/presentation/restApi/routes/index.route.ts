@@ -18,7 +18,7 @@ router.openapi(createRoute({
           })
         }
       },
-      description: "Devuelve todas las noticias disponibles",
+      description: "Mensaje",
     },
   }
 }), (c: Context) => {

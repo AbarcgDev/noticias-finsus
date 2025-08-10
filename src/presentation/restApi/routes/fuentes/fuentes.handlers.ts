@@ -1,9 +1,9 @@
 import { ApiRouteHandler } from "@/lib/types";
-import type { ListFuentesRoute } from "@/infrastructure/api/routes/fuentes/fuentes.routes";
 import { Context } from "hono";
-import { FuentesRepositoryD1 } from "@/infrastructure/repositories/FuentesRepositoryD1";
-import { GetAllFuentes } from "@/application/use-cases/GetAllFuentes";
-import { Fuente } from "@/domain/entities/Fuente";
+import { GetAllFuentes } from "@/application/useCases/GetAllFuentes";
+import { Fuente } from "@/domain/FuenteContext/Fuente";
+import { ListFuentesRoute } from "./fuentes.routes";
+import { FuentesRepositoryD1 } from "@/infrastructure/persistence/FuentesRepositoryD1";
 
 export const list: ApiRouteHandler<ListFuentesRoute> = async (c: Context) => {
   try {
