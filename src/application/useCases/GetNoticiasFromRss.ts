@@ -1,6 +1,5 @@
 import { Noticia } from "../../domain/NoticiaContext/Noticia";
 import { IReadFuente } from "../../domain/FuenteContext/IReadFuente";
-import { IWriteNoticia } from "../../domain/NoticiaContext/IWriteNoticia";
 import { ICensorNoticia } from "../../domain/NoticiaContext/ICensorNoticia";
 import { IReadRssFeed } from "../../domain/NoticiaContext/IReadRssFeed";
 import { IParseNoticiasFromXml } from "../../domain/NoticiaContext/IParseNoticiasFromXml.ts";

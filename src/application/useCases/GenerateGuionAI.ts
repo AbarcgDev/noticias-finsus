@@ -1,0 +1,54 @@
+import { Noticia } from "@/domain/NoticiaContext/Noticia";
+import { IGuionAIGeneration } from "@/domain/GuionContext/IGuionIAGeneration";
+import { Guion } from "@/domain/GuionContext/Guion";
+
+
+export class GenerateGuionAI {
+  constructor(
+    private readonly noticias: Noticia[],
+    private readonly guionAiGenerator: IGuionAIGeneration,
+  ) { }
+
+  async excecute(): Promise<Guion> {
+    const guionContent = await this.guionAiGenerator.generateGuionContent(this.generatePrompt());
+    return Guion.create(guionContent);
+  }
+
+  private generatePrompt(): string {
+    const context: string = [
+      "Eres un experto redactor de guiones para noticieros con enfoque",
+      "en negocios y economia. Trabajas para la empresa Finsus:",
+      "En FINSUS Nuestro enfoque es ofrecer soluciones digitales innovadoras de ahorro",
+      "e inversión para personas físicas y morales.",
+      "Además contamos con esquemas de crédito para el financiamiento de proyectos productivos",
+      "Democratizamos los servicios financieros acelerando la reasignación de capital para financiar",
+      "proyectos socialmente justos: Personas y Ambiente.",
+    ].join(" ");
+    const instruction: string = [
+      "Vas a generar un guion de noticiero que dure 5 minutos",
+      "El guion debe resumir la información en un tono dinámico, pero objetivo y neutral. Evita frases de relleno como 'en este guion' o 'esto es un guion'.",
+      "El formato debe ser estrictamente el siguiente:\n",
+      "NOMBRE_LOCUTOR: SEGMENTO\n",
+      "Asegúrate de que la voz de los locutores se mantenga neutral y evite cualquier lenguaje emocional u opinativo.",
+      "Los locutores deben comenzar con una bienvenida y despedirse al final.",
+      "Menciona la bienvenida de parte de la empresa FINSUS.",
+      "Debe haber un locutor hombre(Fin) y una locutora mujer(Sus).",
+      "El guion debe centrarse en presentar los hechos tal como fueron dados y mencionar la fuente.",
+      "IMPORTANTE: Genera ÚNICAMENTE el texto del guion. No incluyas ningún tipo de encabezado, título, nota o decoración de formato como negritas, asteriscos o cualquier otra cosa fuera del formato 'NOMBRE_LOCUTOR: SEGMENTO'.",
+      "Los Locutores deben presentarse"
+    ].join(" ");
+
+    const prompt = [
+      context,
+      instruction,
+      this.noticias.map((n: Noticia) => {
+        return `
+          TITULO: ${n.title}
+          CONTENIDO: ${n.content}
+          FUENTE: ${n.source}
+        `
+      }).join("\n\n")
+    ].join("\n\n")
+    return prompt;
+  }
+}

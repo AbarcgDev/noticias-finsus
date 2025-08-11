@@ -1,27 +1,41 @@
+interface GuionFields {
+    id?: string,
+    title?: string,
+    content: string,
+    createdAt?: Date,
+    updatedAt?: Date,
+}
+
 export class Guion {
-    constructor(
-        public readonly id: string,
-        public title: string = "Noticiero Finsus" + " - " + new Date().toLocaleDateString("es-MX", {
+    public readonly id: string;
+    public readonly title: string;
+    public content: string;
+    public readonly createdAt: Date;
+    public updatedAt: Date;
+
+    private constructor(
+        content: string, // El contenido es el único campo obligatorio al crear un nuevo Guion.
+        id?: string, // Hacemos 'id' opcional en el constructor
+        title?: string, // Hacemos 'title' opcional en el constructor
+        createdAt?: Date, // Hacemos 'createdAt' opcional en el constructor
+        updatedAt?: Date // Hacemos 'updatedAt' opcional en el constructor
+    ) {
+        this.id = id || crypto.randomUUID();
+        this.title = title || "Noticiero Finsus" + " - " + new Date().toLocaleDateString("es-MX", {
             year: 'numeric',
             month: '2-digit',
             day: '2-digit'
-        }),
-        public content: string,
-        public createdAt: Date = new Date(),
-        public updatedAt: Date = new Date()
-    ) { }
+        });
+        this.content = content;
+        this.createdAt = createdAt || new Date();
+        this.updatedAt = updatedAt || new Date();
+    }
 
-    static fromObject(obj: any): Guion {
-        return new Guion(
-            obj.id || "ID",
-            obj.title || "Noticiero Finsus" + " - " + new Date().toLocaleDateString("es-MX", {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit'
-            }),
-            obj.content || "",
-            obj.createdAt ? new Date(obj.createdAt) : new Date(),
-            obj.updatedAt ? new Date(obj.updatedAt) : new Date()
-        );
+    static fromObject(obj: GuionFields): Guion {
+        return new Guion(obj.content, obj.id, obj.title, obj.createdAt, obj.updatedAt);
+    }
+
+    static create(content: string): Guion {
+        return new Guion(content);
     }
 }

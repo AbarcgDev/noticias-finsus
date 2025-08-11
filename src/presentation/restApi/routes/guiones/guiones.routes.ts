@@ -2,8 +2,8 @@ import { createRoute } from "@hono/zod-openapi";
 import { GuionSchema } from "./guiones.schema";
 
 export const create = createRoute({
-  method: "get",
-  path: "/guiones/create",
+  method: "post",
+  path: "/guiones",
   responses: {
     201: {
       content: {

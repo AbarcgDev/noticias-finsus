@@ -15,6 +15,7 @@
 		"hono": "^4.8.12"
 	},
 	"devDependencies": {
+		"sonarqube-scanner": "^4.3.0",
 		"wrangler": "^4.28.0"
 	}
 }

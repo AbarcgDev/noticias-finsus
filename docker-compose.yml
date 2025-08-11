@@ -7,7 +7,7 @@ services:
       - .:/usr/src/app
     ports:
       - "8787:8787"
-    command: sh -c "npm install && npx wrangler types && npx wrangler d1 migrations apply DB --local < /dev/null && npm run dev"
+    command: sh -c "npm install && npx wrangler types && npx wrangler d1 migrations apply DB --local < /dev/null && wrangler dev "
     stdin_open: true
     tty: true
 

@@ -25,6 +25,26 @@
 	"observability": {
 		"enabled": true,
 	},
+	"triggers": {
+		"crons": [
+			"0 20 * * 0"
+		],
+	},
+	"queues": {
+		"producers": [
+			{
+				"queue": "guion-queue",
+				"binding": "GUION_QUEUE",
+			},
+		],
+		"consumers": [
+			{
+				"queue": "guion-queue",
+				"max_batch_size": 10,
+				"max_retries": 5,
+			},
+		],
+	},
 	/**
    * Smart Placement
    * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

@@ -2,8 +2,11 @@ import { IGuionAIGeneration } from "@/domain/GuionContext/IGuionIAGeneration";
 import { GoogleGenAI } from "@google/genai"
 
 
-class GeminiAIService implements IGuionAIGeneration {
-  constructor(private readonly gemini = new GoogleGenAI({})) { }
+export class GeminiAIService implements IGuionAIGeneration {
+  private readonly gemini: GoogleGenAI;
+  constructor(apiKey: string) {
+    this.gemini = new GoogleGenAI({ apiKey: apiKey });
+  }
 
 
   generateGuionContent(prompt: string): Promise<string> {
@@ -29,5 +32,4 @@ class GeminiAIService implements IGuionAIGeneration {
       throw new Error("Fallo en la generacion de texto por IA")
     }
   }
-  i
 }
