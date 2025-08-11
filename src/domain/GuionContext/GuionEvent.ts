@@ -1,6 +1,13 @@
 import { Guion } from "./Guion"
 
-export interface GuionEvent {
-  action: "guion.created" | "guion.updated" | "guion.validated"
+export enum GuionEvent {
+  Created = "guion.created",
+  Udated = "guion.updated",
+  Validated = "guion.validated",
+  Queued = "guion.queued"
+}
+
+export interface GuionEventMsg {
+  action: GuionEvent
   data: Guion
 }

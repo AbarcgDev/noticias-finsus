@@ -10,4 +10,5 @@ export const GuionSchema = z.object({
   content: z.string().nonempty(),
   createdAt: z.date().default(() => new Date()),
   updatedAt: z.date().default(() => new Date()),
+  status: z.string()
 });

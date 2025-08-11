@@ -4,5 +4,6 @@ import * as handlers from "./guiones.handlers"
 
 const router = createRouter()
   .openapi(routes.create, handlers.create)
+  .openapi(routes.getGuionById, handlers.getGuionById)
 
 export default router;

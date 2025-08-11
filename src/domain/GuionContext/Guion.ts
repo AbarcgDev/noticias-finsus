@@ -4,6 +4,7 @@ interface GuionFields {
     content: string,
     createdAt?: Date,
     updatedAt?: Date,
+    status: string
 }
 
 export class Guion {
@@ -12,13 +13,15 @@ export class Guion {
     public content: string;
     public readonly createdAt: Date;
     public updatedAt: Date;
+    public status: string;
 
     private constructor(
-        content: string, // El contenido es el único campo obligatorio al crear un nuevo Guion.
-        id?: string, // Hacemos 'id' opcional en el constructor
-        title?: string, // Hacemos 'title' opcional en el constructor
-        createdAt?: Date, // Hacemos 'createdAt' opcional en el constructor
-        updatedAt?: Date // Hacemos 'updatedAt' opcional en el constructor
+        content: string,
+        status: string,
+        id?: string,
+        title?: string,
+        createdAt?: Date,
+        updatedAt?: Date
     ) {
         this.id = id || crypto.randomUUID();
         this.title = title || "Noticiero Finsus" + " - " + new Date().toLocaleDateString("es-MX", {
@@ -29,13 +32,14 @@ export class Guion {
         this.content = content;
         this.createdAt = createdAt || new Date();
         this.updatedAt = updatedAt || new Date();
+        this.status = status ?? "ON VALIDATION;"
     }
 
     static fromObject(obj: GuionFields): Guion {
-        return new Guion(obj.content, obj.id, obj.title, obj.createdAt, obj.updatedAt);
+        return new Guion(obj.content, obj.status, obj.id, obj.title, obj.createdAt, obj.updatedAt);
     }
 
-    static create(content: string): Guion {
-        return new Guion(content);
+    static create(content: string, status: string): Guion {
+        return new Guion(content, status);
     }
 }

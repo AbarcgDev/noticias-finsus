@@ -22,6 +22,12 @@
 			"database_name": "noticias-finsus",
 		},
 	],
+	"r2_buckets": [
+		{
+			"bucket_name": "noticieros",
+			"binding": "NOTICIEROS_STORAGE"
+		}
+	],
 	"observability": {
 		"enabled": true,
 	},

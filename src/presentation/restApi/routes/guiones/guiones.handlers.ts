@@ -5,36 +5,62 @@ import { NoticiasCensorGateway } from "@/infrastructure/services/NoticiasCensor"
 import { FeedParserGateway } from "@/infrastructure/services/RssFeedParser";
 import { ApiRouteHandler } from "@/lib/types";
 import { Context } from "hono";
-import { CreateGuionRoute } from "./guiones.routes";
-import { GeminiAIService } from "@/infrastructure/services/GeminiAPIService";
-import { GenerateGuionAI } from "@/application/useCases/GenerateGuionAI";
+import { CreateGuionRoute, GetGuionByIdRoute } from "./guiones.routes";
+import { GuionEvent } from "@/domain/GuionContext/GuionEvent";
+import { Guion } from "@/domain/GuionContext/Guion";
+import { GuionD1Repository } from "@/infrastructure/persistence/GuionRepository";
+import { GetGuionById } from "@/application/useCases/GetGuionById";
 
 export const create: ApiRouteHandler<CreateGuionRoute> = async (c: Context) => {
   console.info("Iniciando creacion periodica de Guion")
   const fuentesRepository = new FuentesRepositoryD1(c.env.DB)
-  const IAgenerator = new GeminiAIService(c.env.GEMINI_API_KEY)
   const noticiasFinder = new GetNoticiasFromRss(
     fuentesRepository,
     new HttpRssFeedGateway(),
     new FeedParserGateway(),
     new NoticiasCensorGateway()
   )
-  const noticias = await noticiasFinder.execute()
+  const guion = Guion.fromObject({
+    content: "En cola",
+    status: "Queued"
+  })
   c.executionCtx.waitUntil((async () => {
-    const guionGenerator = new GenerateGuionAI(noticias, IAgenerator)
-    const guion = await guionGenerator.excecute()
-
     await c.env.GUION_QUEUE.send({
-      action: "guion.created",
+      action: GuionEvent.Queued,
       data: guion,
     })
+    console.info("Guion en cola: ", guion.id)
   })())
 
   return c.json({
-    id: crypto.randomUUID(),
-    title: "Generacion",
-    content: "Se está generando tu guion",
-    createdAt: new Date,
-    updatedAt: new Date
+    message: "Tu guion se está generando",
+    data: {
+      id: guion.id,
+      title: guion.title,
+      content: guion.content,
+      createdAt: guion.createdAt,
+      updatedAt: guion.updatedAt
+    }
   }, 201)
+}
+
+export const getGuionById: ApiRouteHandler<GetGuionByIdRoute> = async (c: Context) => {
+  const { id } = c.req.param()
+  const guionRepository = new GuionD1Repository(c.env.DB);
+  const guionFinder = new GetGuionById(guionRepository);
+  const guion = await guionFinder.execute(id);
+  console.info(guion.status);
+  if (guion.status !== "READY") {
+    return c.json({
+      message: "El guion aun no está listo"
+    }, 202)
+  }
+  return c.json({
+    id: guion.id,
+    title: guion.title,
+    content: guion.content,
+    createdAt: guion.createdAt,
+    updatedAt: guion.updatedAt,
+    status: guion.status
+  }, 200)
 }

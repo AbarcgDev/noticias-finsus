@@ -9,9 +9,9 @@ export class GenerateGuionAI {
     private readonly guionAiGenerator: IGuionAIGeneration,
   ) { }
 
-  async excecute(): Promise<Guion> {
+  async excecute(): Promise<string> {
     const guionContent = await this.guionAiGenerator.generateGuionContent(this.generatePrompt());
-    return Guion.create(guionContent);
+    return guionContent
   }
 
   private generatePrompt(): string {
@@ -35,7 +35,9 @@ export class GenerateGuionAI {
       "Debe haber un locutor hombre(Fin) y una locutora mujer(Sus).",
       "El guion debe centrarse en presentar los hechos tal como fueron dados y mencionar la fuente.",
       "IMPORTANTE: Genera ÚNICAMENTE el texto del guion. No incluyas ningún tipo de encabezado, título, nota o decoración de formato como negritas, asteriscos o cualquier otra cosa fuera del formato 'NOMBRE_LOCUTOR: SEGMENTO'.",
-      "Los Locutores deben presentarse"
+      "Los Locutores deben presentarse y presentar el programa",
+      "El programa se titula Noticiero Finsus",
+      "Optimiza el guion para que pueda ser procesado por un modelo TTS"
     ].join(" ");
 
     const prompt = [
