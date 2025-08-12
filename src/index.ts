@@ -30,7 +30,7 @@ export default {
       const guionGenerator = new GenerateGuionAI(noticias, IAgenerator)
       const content = await guionGenerator.excecute()
       const guion = Guion.create(content, "READY")
-      guionSaver.execute(guion)
+      guionSaver.save(guion)
       console.info("Guion generado con id: ", guion.id)
       env.GUION_QUEUE.send({
         action: GuionEvent.Created,

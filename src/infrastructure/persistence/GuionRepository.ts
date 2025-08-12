@@ -53,11 +53,15 @@ export class GuionD1Repository implements IWriteGuion, IReadGuion {
             const query = this.db.prepare(`
             UPDATE guiones 
             SET
+                title = ?,
+                status = ?,
                 content = ?, 
                 updatedAt = ?
             WHERE id = ?
         `);
             const result = await query.bind(
+                guion.title,
+                guion.status,
                 guion.content,
                 new Date().toISOString(),
                 guion.id

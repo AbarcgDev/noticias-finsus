@@ -76,7 +76,7 @@ export class GeminiAIService implements IGuionAIGeneration, IAudioFileGenerator 
         }
       }
     })
-
+    console.info(response);
     return response;
   }
 

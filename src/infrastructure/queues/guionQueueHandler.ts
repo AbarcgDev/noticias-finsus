@@ -37,17 +37,20 @@ export async function guionQueueHandler(batch: MessageBatch<GuionEventMsg>, env:
                         updatedAt: payload.data.updatedAt,
                         status: "READY"
                     })
-                    await saveGuionUseCase.execute(Guion.fromObject(guion))
+                    await saveGuionUseCase.save(Guion.fromObject(guion))
                     console.info("Guion, creado id: ", guion.id)
                     await env.GUION_QUEUE.send({
                         action: GuionEvent.Created,
                         data: Guion,
                     });
                     message.ack()
+                    break;
                 case GuionEvent.Created:
                     // TODO: Llamar servicio de email
                     message.ack()
+                    break;
                 case GuionEvent.Validated:
+                    console.info("Generando audio de guion validado: " + payload.data.id);
                     const audioGenerator = new GenerateAudioFile(
                         new GeminiAIService(env.GEMINI_API_KEY)
                     )
@@ -57,6 +60,7 @@ export async function guionQueueHandler(batch: MessageBatch<GuionEventMsg>, env:
                     )
                     await env.NOTICIEROS_STORAGE.put(payload.data.id + ".wav", audioWav)
                     console.info("Audio almacenado correctamente")
+                    break;
             }
         }
         catch (e) {

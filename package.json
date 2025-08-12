@@ -12,7 +12,8 @@
 		"@hono/zod-openapi": "^1.1.0",
 		"fast-xml-parser": "^4.2.4",
 		"genai": "^0.0.18",
-		"hono": "^4.8.12"
+		"hono": "^4.8.12",
+		"@cloudflare/actors": "0.0.1-beta.3"
 	},
 	"devDependencies": {
 		"sonarqube-scanner": "^4.3.0",

@@ -65,9 +65,9 @@ export const getGuionById = createRoute({
   }
 });
 
-export const update = createRoute({
+export const updateGuionState = createRoute({
   method: "put",
-  path: "/guiones/{id}",
+  path: "/guiones/{id}/state",
   request: {
     params: z.object({
       id: z.uuid(),
@@ -75,7 +75,9 @@ export const update = createRoute({
     body: {
       content: {
         "application/json": {
-          schema: GuionSchema
+          schema: z.object({
+            state: z.enum(["guion.validated"]),
+          })
         }
       }
     }
@@ -101,11 +103,21 @@ export const update = createRoute({
       },
       description: "No se encontró el guion con el ID proporcionado",
     },
+    400: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            message: z.string()
+          })
+        },
+      },
+      description: "Parametros no recibidos"
+    }
   }
 });
 
 
 export type CreateGuionRoute = typeof create;
 export type GetGuionByIdRoute = typeof getGuionById;
-export type UpdateGuionRoute = typeof update;
+export type UpdateGuionStateRoute = typeof updateGuionState;
 
