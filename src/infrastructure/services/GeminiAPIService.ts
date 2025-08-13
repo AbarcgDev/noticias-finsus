@@ -12,11 +12,11 @@ export class GeminiAIService implements IGuionAIGeneration, IAudioFileGenerator 
     try {
       const response = await this.callTTSGenerationModel(instruction, content)
       const data = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+      console.info("Datos de audio recibidos: ", data);
       if (!data) {
         throw new Error("No se recibieron datos de audio");
       }
-      const audioBytes: WavBuffer = Uint8Array.from(atob(data), c => c.charCodeAt(0));
-      const wavData: WavBuffer = this.createWavBuffer(audioBytes);
+      const wavData: WavBuffer = this.createWavBuffer(data);
       return wavData;
     } catch (e) {
       console.error("Error generando audio: ", e);
@@ -76,40 +76,42 @@ export class GeminiAIService implements IGuionAIGeneration, IAudioFileGenerator 
         }
       }
     })
-    console.info(response);
     return response;
   }
 
-  private createWavBuffer(pcmData: WavBuffer, channels = 1, rate = 24000, sampleWidth = 2): WavBuffer {
-    const dataLength: number = pcmData.length;
-    const buffer: ArrayBuffer = new ArrayBuffer(44 + dataLength);
-    const view: DataView = new DataView(buffer);
 
-    const writeString = (offset: number, string: string) => {
-      for (let i = 0; i < string.length; i++) {
-        view.setUint8(offset + i, string.charCodeAt(i));
+  // CREA UN BUFFER WAV A PARTIR DE UN BASE64
+  private createWavBuffer(base64Data: string, channels = 1, rate = 24000, sampleWidth = 2): WavBuffer {
+    const pcmData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+    const dataLength = pcmData.length;
+    const buffer = new ArrayBuffer(44 + dataLength);
+    const view = new DataView(buffer);
+
+    const writeString = (offset: number, str: string) => {
+      for (let i = 0; i < str.length; i++) {
+        view.setUint8(offset + i, str.charCodeAt(i));
       }
     };
 
-    // Escribir el encabezado del archivo WAV (RIFF header)
+    // RIFF header
     writeString(0, 'RIFF');
-    view.setUint32(4, 36 + dataLength, true); // Tamaño del archivo
+    view.setUint32(4, 36 + dataLength, true); // file length - 8
     writeString(8, 'WAVE');
     writeString(12, 'fmt ');
-    view.setUint32(16, 16, true); // Tamaño del subchunk
-    view.setUint16(20, 1, true); // AudioFormat 1 = PCM
+    view.setUint32(16, 16, true); // PCM chunk size
+    view.setUint16(20, 1, true); // format = PCM
     view.setUint16(22, channels, true);
     view.setUint32(24, rate, true);
-    view.setUint32(28, rate * channels * sampleWidth, true);
-    view.setUint16(32, channels * sampleWidth, true);
-    view.setUint16(34, sampleWidth * 8, true);
+    view.setUint32(28, rate * channels * sampleWidth, true); // byte rate
+    view.setUint16(32, channels * sampleWidth, true); // block align
+    view.setUint16(34, sampleWidth * 8, true); // bits per sample
     writeString(36, 'data');
     view.setUint32(40, dataLength, true);
 
-    // Copiar los datos de audio en el buffer combinado
-    const combinedBuffer = new Uint8Array(buffer);
-    combinedBuffer.set(pcmData, 44);
+    // Copiar datos PCM después del header
+    const wavBytes = new Uint8Array(buffer);
+    wavBytes.set(pcmData, 44);
 
-    return combinedBuffer;
+    return wavBytes;
   }
 }
