@@ -7,7 +7,13 @@ export class SaveGuion {
         private readonly repository: IWriteGuion,
     ) { }
 
-    async execute(guion: Guion): Promise<Guion> {
-        return this.repository.saveGuion(guion);
+    async save(guion: Guion): Promise<Guion> {
+        const result = await this.repository.saveGuion(guion);
+        return result;
+    }
+
+    async update(guion: Guion): Promise<Guion> {
+        const result = await this.repository.updateGuion(guion);
+        return result;
     }
 }

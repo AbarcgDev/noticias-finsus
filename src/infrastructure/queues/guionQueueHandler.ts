@@ -10,6 +10,9 @@ import { FeedParserGateway } from "../services/RssFeedParser";
 import { NoticiasCensorGateway } from "../services/NoticiasCensor";
 import { GeminiAIService } from "../services/GeminiAPIService";
 import { GenerateAudioFile } from "@/application/useCases/GenerateAdioFile";
+import { Noticiero } from "@/domain/noticieros/Noticiero";
+import { NoticierosD1Repository } from "../persistence/NoticierosD1Repository";
+import { NoticieroAudioR2Repository } from "../persistence/NoticieroAudioR2Repository";
 
 export async function guionQueueHandler(batch: MessageBatch<GuionEventMsg>, env: Env) {
     const saveGuionUseCase = new SaveGuion(
@@ -21,6 +24,8 @@ export async function guionQueueHandler(batch: MessageBatch<GuionEventMsg>, env:
         new FeedParserGateway(),
         new NoticiasCensorGateway(),
     )
+
+    const noticierosRepository = new NoticierosD1Repository(env.DB)
     for (const message of batch.messages) {
         try {
             const payload = message.body
@@ -37,17 +42,20 @@ export async function guionQueueHandler(batch: MessageBatch<GuionEventMsg>, env:
                         updatedAt: payload.data.updatedAt,
                         status: "READY"
                     })
-                    await saveGuionUseCase.execute(Guion.fromObject(guion))
+                    await saveGuionUseCase.save(Guion.fromObject(guion))
                     console.info("Guion, creado id: ", guion.id)
                     await env.GUION_QUEUE.send({
                         action: GuionEvent.Created,
                         data: Guion,
                     });
                     message.ack()
+                    break;
                 case GuionEvent.Created:
                     // TODO: Llamar servicio de email
                     message.ack()
+                    break;
                 case GuionEvent.Validated:
+                    console.info("Generando audio de guion validado: " + payload.data.id);
                     const audioGenerator = new GenerateAudioFile(
                         new GeminiAIService(env.GEMINI_API_KEY)
                     )
@@ -55,8 +63,20 @@ export async function guionQueueHandler(batch: MessageBatch<GuionEventMsg>, env:
                         "Lee en tono informativo, presentador de noticias",
                         payload.data.content
                     )
-                    await env.NOTICIEROS_STORAGE.put(payload.data.id + ".wav", audioWav)
+                    const audioWavName = payload.data.id
+                    const audioRepo = new NoticieroAudioR2Repository(env.NOTICIEROS_STORAGE)
+                    await audioRepo.uploadAudioWAV(audioWavName, audioWav)
                     console.info("Audio almacenado correctamente")
+                    const noticiero = new Noticiero(
+                        undefined,
+                        payload.data.title,
+                        payload.data.content,
+                        audioWavName,
+                    )
+                    await noticierosRepository.createNoticiero(noticiero)
+                    console.info("Noticiero creado correctamente: ", noticiero.id)
+                    message.ack()
+                    break;
             }
         }
         catch (e) {

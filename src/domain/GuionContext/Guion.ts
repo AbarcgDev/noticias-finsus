@@ -42,4 +42,11 @@ export class Guion {
     static create(content: string, status: string): Guion {
         return new Guion(content, status);
     }
+
+    setStatus(status: string) {
+        this.status = status
+        if (status === "guion.validated") {
+
+        }
+    }
 }
