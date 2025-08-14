@@ -3,8 +3,8 @@ import { Noticia } from "@/Models/Noticia";
 import { guionNoticiero } from "@/AIPrompts.json"
 import { GoogleGenAI } from "@google/genai";
 
- async excecute(): Promise < string > {
-    const guionContent = await this.guionAiGenerator.generateGuionContent(this.generatePrompt());
+const generateGuionWithAI = async (noticias: Noticia[], apiKey: string): Promise<string> => {
+    const guionContent = callTextGenerationService(generatePrompt(noticias), apiKey);
     return guionContent
 }
 
@@ -28,7 +28,7 @@ const callTextGenerationService = async (prompt: string, apiKey: string): Promis
     try {
         const model = "gemini-2.5-flash"
         console.info("Generando texto con Gemini, modelo: ", model)
-        const response = gemini.models.generateContent({
+        const response = await gemini.models.generateContent({
             model: model,
             contents: prompt
         })
