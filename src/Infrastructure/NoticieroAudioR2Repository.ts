@@ -1,6 +1,8 @@
-import { WavBuffer } from "@/application/IAudioFileGenerator";
+import { WavBuffer } from "@/Data/Trasformations/TransformAIResponseToWAV";
+import { Mp3Buffer } from "@/Data/Trasformations/TransformWAVToMP3";
 
-export class NoticieroAudioR2Repository {
+
+export class AudioR2Repository {
     constructor(private readonly bucket: R2Bucket) { }
 
     async uploadAudioWAV(audioId: string, audioBuffer: WavBuffer): Promise<string> {
@@ -15,6 +17,24 @@ export class NoticieroAudioR2Repository {
 
     async getAudioWAV(audioID: string): Promise<Blob> {
         const audioKey = `noticiero-audio/${audioID}.wav`;
+        const audio = await this.bucket.get(audioKey);
+        if (!audio) {
+            throw new Error(`Audio with ID ${audioID} not found`);
+        }
+        return audio.blob();
+    }
+
+    async uploadAudioMp3(audioId: string, audioBuffer: Mp3Buffer): Promise<void> {
+        const audioKey = `noticiero-audio/${audioId}.mp3`;
+        await this.bucket.put(audioKey, audioBuffer, {
+            httpMetadata: {
+                contentType: 'audio/mpeg',
+            },
+        });
+    }
+
+    async getAudioMp3(audioID: string): Promise<Blob> {
+        const audioKey = `noticiero-audio/${audioID}.mp3`;
         const audio = await this.bucket.get(audioKey);
         if (!audio) {
             throw new Error(`Audio with ID ${audioID} not found`);

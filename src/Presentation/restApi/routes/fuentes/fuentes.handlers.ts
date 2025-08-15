@@ -1,23 +1,19 @@
 import { ApiRouteHandler } from "@/lib/types";
 import { Context } from "hono";
-import { GetAllFuentes } from "@/application/useCases/GetAllFuentes";
-import { Fuente } from "@/domain/FuenteContext/Fuente";
 import { ListFuentesRoute } from "./fuentes.routes";
-import { FuentesRepositoryD1 } from "@/infrastructure/persistence/FuentesRepositoryD1";
+import { RSSChanelRepository } from "@/Infrastructure/RssChanelD1Repository";
+import { RSSChannel } from "@/Data/Models/RSSChanel";
 
 export const list: ApiRouteHandler<ListFuentesRoute> = async (c: Context) => {
   try {
     console.info("Accediendo a todas las fuentes:");
-    const repo = new FuentesRepositoryD1(c.env.DB);
-    const useCase = new GetAllFuentes(repo);
-    const fuentes = await useCase.execute();
-    return c.json(fuentes.map((fuente: Fuente) => ({
-      id: fuente.id,
-      name: fuente.name,
-      rssUrl: fuente.rssUrl,
-      active: fuente.active,
-      createdAt: fuente.createdAt.toISOString(),
-      updatedAt: fuente.updatedAt.toISOString(),
+    const repo = new RSSChanelRepository(c.env.DB);
+    const chanels = await repo.findAll()
+    return c.json(chanels.map((chanel: RSSChannel) => ({
+      id: chanel.id,
+      name: chanel.name,
+      rssUrl: chanel.rssUrl,
+      active: chanel.active,
     })), { status: 200 });
   }
   catch (error) {

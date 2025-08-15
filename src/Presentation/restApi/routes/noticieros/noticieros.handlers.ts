@@ -3,6 +3,7 @@ import { Context } from "hono";
 import { GetNoticieroAudioWAVRoute, ListNoticierosRoute } from "./noticieros.routes";
 import { NoticierosD1Repository } from "@/Infrastructure/NoticierosD1Repository";
 import { Noticiero } from "@/Data/Models/Noticiero";
+import { AudioR2Repository } from "@/Infrastructure/NoticieroAudioR2Repository";
 
 export const list: ApiRouteHandler<ListNoticierosRoute> = async (c: Context) => {
     const noticierosRepository = new NoticierosD1Repository(c.env.DB);
@@ -14,26 +15,27 @@ export const list: ApiRouteHandler<ListNoticierosRoute> = async (c: Context) => 
         id: noticiero.id,
         title: noticiero.title,
         guion: noticiero.guion,
-        wavAudioId: noticiero.wavAudioId,
-        publication_date: noticiero.publication_date.toISOString(),
+        state: noticiero.state,
+        publicationDate: noticiero.publicationDate,
+        approvedBy: noticiero.approvedBy
     })), { status: 200 });
 }
 
 export const getNoticieroAudioWAV: ApiRouteHandler<GetNoticieroAudioWAVRoute> = async (c: Context) => {
     const { id } = c.req.param();
     const noticierosRepository = new NoticierosD1Repository(c.env.DB);
-    const noticiero = await noticierosRepository.getNoticieroById(id);
+    const noticiero = await noticierosRepository.findById(id);
     if (!noticiero) {
         return c.json({ message: "Noticiero no encontrado" }, { status: 404 });
     }
-    const audioRepo = new NoticieroAudioR2Repository(c.env.NOTICIEROS_STORAGE);
-    const audioWav = await audioRepo.getAudioWAV(noticiero.wavAudioId);
+    const audioRepo = new AudioR2Repository(c.env.NOTICIEROS_STORAGE);
+    const audioWav = await audioRepo.getAudioWAV(noticiero.id);
     if (!audioWav) {
         return c.json({ message: "Audio no encontrado" }, { status: 404 });
     }
     const audioWavBuffer = await audioWav.arrayBuffer();
     const audioWavBin = new Uint8Array(audioWavBuffer);
     c.header("Content-Type", "audio/wav");
-    c.header("Content-Disposition", `inline; filename="${noticiero.wavAudioId}"`);
+    c.header("Content-Disposition", `inline; filename="${noticiero.id}.wav"`);
     return c.body(audioWavBin, 200);
 }

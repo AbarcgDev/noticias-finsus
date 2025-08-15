@@ -1,55 +1,58 @@
-import { Noticiero } from "@/Models/Noticiero";
+import { Noticiero } from "@/Data/Models/Noticiero";
+import { INoticierosRepository } from "@/Repositories/INoticierosRepositrory";
+import { raw } from "hono/html";
 
 export class NoticierosD1Repository implements INoticierosRepository {
     constructor(private readonly db: D1Database) { }
-    getById(id: string): Promise<Noticiero> {
+
+    async findById(id: string): Promise<Noticiero | null> {
         const query = this.db.prepare("SELECT * FROM noticieros WHERE id = ?");
-        return query.bind(id).first().then((row: Noticiero) => {
-            if (!row) {
-                return Promise.reject(new Error("Noticiero no encontrado"));
-            }
-            return {
-                id: row.id,
-                title: row.title,
-                guion guion,
-                row.wav_audio_id,
-                new Date(row.publication_date)
-            };
-        });
+        const result: Noticiero | null = await query.bind(id).first()
+        if (!result) {
+            return Promise.resolve(null);
+        }
+        return {
+            id: result.id,
+            title: result.title,
+            guion: result.guion,
+            publicationDate: result.publicationDate
+        } as Noticiero;
     }
+
     async findAll(): Promise<Noticiero[]> {
         const { results } = await this.db.prepare("SELECT * FROM noticieros").all()
         let resolution: Noticiero[] = [];
         if (results) {
-            resolution = results.map((row: any) => new Noticiero(
-                row.id,
-                row.title,
-                row.transcript,
-                row.wav_audio_id,
-                new Date(row.publication_date)
-            ));
+            const resolution = results.map((row: any) => {
+                return {
+                    id: row.id,
+                    title: row.title,
+                    guion: row.guion,
+                    state: row.state,
+                    publicationDate: row.publicationDate
+                }
+            }
+            );
         }
         return Promise.resolve(resolution);
     }
-    async save(noticiero: Noticiero): Promise<Noticiero> {
+
+    async save(noticiero: Noticiero): Promise<void> {
         const query = this.db.prepare(`
             INSERT INTO noticieros (
             id, 
             title, 
-            transcript, 
-            wav_audio_id, 
+            guion,  
             publication_date) 
             VALUES
-            (?, ?, ?, ?, ?);
+            (?, ?, ?, ?);
             `);
         await query.bind(
             noticiero.id,
             noticiero.title,
-            noticiero.transcript,
-            noticiero.wavAudioId,
-            noticiero.publication_date.toISOString()
+            noticiero.guion,
+            noticiero.publicationDate.toISOString()
         ).run();
-        return Promise.resolve(noticiero);
     }
 
     delete(id: string): Promise<Noticiero> {

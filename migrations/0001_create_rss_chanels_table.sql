@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS rss_chanels (
+    id VARCHAR(36) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    rssUrl VARCHAR(255) NOT NULL,
+    active BOOLEAN DEFAULT TRUE
+);

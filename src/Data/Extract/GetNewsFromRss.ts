@@ -1,5 +1,6 @@
-import { Noticia } from "@/Models/Noticia";
+import { Noticia } from "@/Data/Models/Noticia";
 import { XMLParser } from "fast-xml-parser";
+import { cleanHtmlWithRewriter } from "../Trasformations/CleanHtml";
 
 export const getRssRaw = async (url: string): Promise<string> => {
     const response = await fetch(url);
@@ -27,7 +28,7 @@ export const extractNewsFromRss = async (xmlString: string): Promise<Noticia[]> 
             title: item.title || "",
             categories: item.category || [],
             publicationDate: new Date(item.pubDate),
-            content: item["content:encoded"],
+            content: await cleanHtmlWithRewriter(item["content:encoded"]),
             source: feedContent.rss?.channel?.title || ""
         };
     });

@@ -1,5 +1,5 @@
 import { createRoute, z } from "@hono/zod-openapi";
-import { FuenteSchema } from "./fuentes.schema";
+import { CanalRSSSchema } from "@/Presentation/restApi/routes/fuentes/fuentes.schema";
 
 export const list = createRoute({
   method: "get",
@@ -8,7 +8,7 @@ export const list = createRoute({
     200: {
       content: {
         "application/json": {
-          schema: z.array(FuenteSchema)
+          schema: z.array(CanalRSSSchema)
         }
       },
       description: "Lista fuentes disponibles",

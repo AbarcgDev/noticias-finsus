@@ -1,7 +1,7 @@
-import { Noticia } from "@/Models/Noticia";
 
 import { guionNoticiero } from "@/AIPrompts.json"
 import { GoogleGenAI } from "@google/genai";
+import { Noticia } from "../Models/Noticia";
 
 export const generateGuionWithAI = async (noticias: Noticia[], apiKey: string): Promise<string> => {
     const guionContent = callTextGenerationService(generatePrompt(noticias), apiKey);

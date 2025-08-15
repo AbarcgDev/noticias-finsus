@@ -1,17 +1,18 @@
-import { RSSChannel } from "@/Models/RSSChanel";
+import { RSSChannel } from "@/Data/Models/RSSChanel";
+import { IRSSChanelRepository } from "@/Repositories/IRSSChanelRepository";
 
-export class IRSSChanelRepository implements IRSSChanelRepository {
+export class RSSChanelRepository implements IRSSChanelRepository {
   constructor(private readonly db: D1Database) { }
 
   public async findAll(): Promise<RSSChannel[]> {
-    const { results } = await this.db.prepare("SELECT * FROM fuentes").all();
+    const { results } = await this.db.prepare("SELECT * FROM rss_chanels").all();
     let resolution: RSSChannel[] = [];
     if (results) {
       resolution = results.map((row: any) => {
         return {
           id: row.id,
           name: row.name,
-          rssUrl: row.rss_url,
+          rssUrl: row.rssUrl,
           active: row.active === 1,
         }
       });
@@ -20,7 +21,7 @@ export class IRSSChanelRepository implements IRSSChanelRepository {
   }
 
   async findById(id: string): Promise<RSSChannel | null> {
-    const result: RSSChannel | null = await this.db.prepare("SELECT * FROM fuentes WHERE id = ?")
+    const result: RSSChannel | null = await this.db.prepare("SELECT * FROM rss_chanels WHERE id = ?")
       .bind(id).first();
     if (!result) {
       return Promise.resolve(null);

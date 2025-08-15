@@ -1,6 +1,8 @@
-import { WavBuffer } from "@/application/IAudioFileGenerator";
 
-const createWavBuffer = (base64Data: string, channels = 1, rate = 24000, sampleWidth = 2): WavBuffer => {
+
+export type WavBuffer = Uint8Array;
+
+export const transformBase64ToWAV = (base64Data: string, channels = 1, rate = 24000, sampleWidth = 2): WavBuffer => {
   const pcmData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
   const dataLength = pcmData.length;
   const buffer = new ArrayBuffer(44 + dataLength);

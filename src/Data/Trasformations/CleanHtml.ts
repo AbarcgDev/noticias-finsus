@@ -1,7 +1,7 @@
-export const cleanHtmlWithRewriter = async (htmlContent: string): Promise<string> => {
+export const cleanHtmlWithRewriter = async (htmlContent: string, tag: string = "*"): Promise<string> => {
   let clearContent = "";
   const htmlRewriter = new HTMLRewriter()
-    .on("*", {
+    .on(tag, {
       text: (text) => {
         clearContent += text.text.trim();
       }
@@ -16,3 +16,20 @@ export const cleanHtmlWithRewriter = async (htmlContent: string): Promise<string
   return clearContent;
 }
 
+export async function extractBody(response: Response): Promise<Response> {
+  const rewriter = new HTMLRewriter()
+    .on('head', {
+      element: (element) => {
+        element.remove()
+      }
+    })
+    .on('*', {
+      element: (element) => {
+        if (element.tagName !== 'body') {
+          element.remove();
+        }
+      }
+    });
+
+  return rewriter.transform(response);
+}

@@ -24,5 +24,10 @@
       "El programa se titula Noticiero Finsus",
       "Optimiza el guion para que pueda ser procesado por un modelo TTS"
     ]
+  },
+  "audioNoticiero": {
+    "instruction": [
+      "Genera el audio de este noticiero, manten a los narradores en un tono informativo"
+    ]
   }
 }

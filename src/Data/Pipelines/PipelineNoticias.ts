@@ -1,7 +1,7 @@
-import { Noticia } from "@/Models/Noticia";
-import { RSSChannel } from "@/Models/RSSChanel";
-import { extractNewsFromRss, getRssRaw } from "@/Processes/Extract/GetNewsFromRss";
-import { filterNews } from "@/Processes/Trasformations/FilterNews";
+import { Noticia } from "@/Data/Models/Noticia";
+import { RSSChannel } from "@/Data/Models/RSSChanel";
+import { filterNews } from "@/Data/Trasformations/FilterNews";
+import { extractNewsFromRss, getRssRaw } from "../Extract/GetNewsFromRss";
 
 export const pipelineNoticias = async (channels: RSSChannel[]): Promise<Noticia[]> => {
   try {
@@ -16,8 +16,10 @@ export const pipelineNoticias = async (channels: RSSChannel[]): Promise<Noticia[
     });
 
     const allNews = (await Promise.all(fetchPromises)).flat();
-
-    return filterNews(allNews);
+    const filteredNews = filterNews(allNews)
+    console.info(`Se descartaron ${allNews.length - filteredNews.length} noticias`)
+    console.info(`Se enviarán ${filteredNews.length} noticias`)
+    return filteredNews;
   } catch (error) {
     console.error("An unexpected error occurred in getNewsFromRSSSources:", error);
     return [];
