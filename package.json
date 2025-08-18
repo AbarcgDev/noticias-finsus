@@ -8,12 +8,18 @@
 		"cf-typegen": "wrangler types --env-interface CloudflareBindings"
 	},
 	"dependencies": {
+		"@breezystack/lamejs": "^1.2.7",
+		"@cloudflare/actors": "0.0.1-beta.3",
+		"@ffmpeg/core": "^0.12.10",
+		"@ffmpeg/ffmpeg": "^0.12.15",
+		"@ffmpeg/util": "^0.12.2",
 		"@google/genai": "^1.13.0",
 		"@hono/zod-openapi": "^1.1.0",
+		"@types/uuid": "^10.0.0",
 		"fast-xml-parser": "^4.2.4",
 		"genai": "^0.0.18",
 		"hono": "^4.8.12",
-		"@cloudflare/actors": "0.0.1-beta.3"
+		"uuid": "^11.1.0"
 	},
 	"devDependencies": {
 		"sonarqube-scanner": "^4.3.0",
