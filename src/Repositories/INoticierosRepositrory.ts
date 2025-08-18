@@ -1,4 +1,4 @@
-import { Noticiero } from "@/Data/Models/Noticiero";
+import { Noticiero } from "../Data/Models/Noticiero";
 
 export interface INoticierosRepository {
     findAll(): Promise<Noticiero[]>

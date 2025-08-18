@@ -1,4 +1,4 @@
-import { Noticia } from "@/Data/Models/Noticia";
+import { Noticia } from "../Models/Noticia";
 
 export const filterNews = (noticias: Noticia[]): Noticia[] => {
   return filterByCensor(

@@ -1,8 +1,8 @@
-import { ApiRouteHandler } from "@/lib/types";
+import { ApiRouteHandler } from "../../../../lib/types";
 import { Context } from "hono";
 import { ListFuentesRoute } from "./fuentes.routes";
-import { RSSChanelRepository } from "@/Infrastructure/RssChanelD1Repository";
-import { RSSChannel } from "@/Data/Models/RSSChanel";
+import { RSSChanelRepository } from "../../../../Infrastructure/RssChanelD1Repository";
+import { RSSChannel } from "../../../../Data/Models/RSSChanel";
 
 export const list: ApiRouteHandler<ListFuentesRoute> = async (c: Context) => {
   try {

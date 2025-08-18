@@ -1,4 +1,4 @@
-import { Noticia } from "@/Data/Models/Noticia";
+import { Noticia } from "../Models/Noticia";
 import { XMLParser } from "fast-xml-parser";
 import { cleanHtmlWithRewriter } from "../Trasformations/CleanHtml";
 

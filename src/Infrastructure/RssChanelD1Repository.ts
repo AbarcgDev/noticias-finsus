@@ -1,5 +1,5 @@
-import { RSSChannel } from "@/Data/Models/RSSChanel";
-import { IRSSChanelRepository } from "@/Repositories/IRSSChanelRepository";
+import { RSSChannel } from "../Data/Models/RSSChanel";
+import { IRSSChanelRepository } from "../Repositories/IRSSChanelRepository";
 
 export class RSSChanelRepository implements IRSSChanelRepository {
   constructor(private readonly db: D1Database) { }

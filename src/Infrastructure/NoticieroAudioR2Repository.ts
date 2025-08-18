@@ -1,18 +1,18 @@
-import { WavBuffer } from "@/Data/Trasformations/TransformAIResponseToWAV";
-import { Mp3Buffer } from "@/Data/Trasformations/TransformWAVToMP3";
+import { IAudioRepository } from "@/Repositories/IAudioRepository";
+import { WavBuffer } from "../Data/Trasformations/TransformAIResponseToWAV";
+import { Mp3Buffer } from "../Data/Trasformations/TransformWAVToMP3";
 
 
-export class AudioR2Repository {
+export class AudioR2Repository implements IAudioRepository {
     constructor(private readonly bucket: R2Bucket) { }
 
-    async uploadAudioWAV(audioId: string, audioBuffer: WavBuffer): Promise<string> {
+    async uploadAudioWAV(audioId: string, audioBuffer: WavBuffer): Promise<void> {
         const audioKey = `noticiero-audio/${audioId}.wav`;
         await this.bucket.put(audioKey, audioBuffer, {
             httpMetadata: {
                 contentType: 'audio/wav',
             },
         });
-        return audioKey;
     }
 
     async getAudioWAV(audioID: string): Promise<Blob> {

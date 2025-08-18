@@ -1,7 +1,7 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { cloudflareApp } from "./types";
-import notFound from "@/presentation/restApi/middlewares/notFoundHandler";
-import onError from "@/presentation/restApi/middlewares/errorHandler";
+import notFound from "@/Presentation/restApi/middlewares/notFoundHandler";
+import onError from "@/Presentation/restApi/middlewares/errorHandler";
 
 
 export function createRouter(): cloudflareApp {

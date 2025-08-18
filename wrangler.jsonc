@@ -7,13 +7,12 @@
 	"name": "noticias-finsus",
 	"main": "src/index.ts",
 	"compatibility_date": "2025-08-03",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
 	"dev": {
 		"ip": "0.0.0.0",
 		"port": 8787,
-	},
-	"assets": {
-		"binding": "ASSETS",
-		"directory": "./public",
 	},
 	"d1_databases": [
 		{
@@ -51,6 +50,9 @@
 			},
 		],
 	},
+	"site": {
+		"bucket": "Frontend/dist"
+	}
 	/**
    * Smart Placement
    * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

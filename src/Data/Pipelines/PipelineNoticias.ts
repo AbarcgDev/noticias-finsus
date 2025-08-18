@@ -1,6 +1,6 @@
-import { Noticia } from "@/Data/Models/Noticia";
-import { RSSChannel } from "@/Data/Models/RSSChanel";
-import { filterNews } from "@/Data/Trasformations/FilterNews";
+import { Noticia } from "../Models/Noticia";
+import { RSSChannel } from "../Models/RSSChanel";
+import { filterNews } from "../Trasformations/FilterNews";
 import { extractNewsFromRss, getRssRaw } from "../Extract/GetNewsFromRss";
 
 export const pipelineNoticias = async (channels: RSSChannel[]): Promise<Noticia[]> => {
