@@ -1,0 +1,1 @@
+npx wrangler kv key put --binding=LATEST_NOTICIERO_ST "latest" --path=./latestNoticiero.json

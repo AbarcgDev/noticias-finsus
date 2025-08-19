@@ -4,7 +4,10 @@ import * as handlers from "./noticieros.handlers";
 
 const router = createRouter()
     .openapi(routes.list, handlers.list)
+    .openapi(routes.getNoticieroLatestAudio, handlers.getLatestNoticieroAudio)
     .openapi(routes.getNoticieroAudioWAV, handlers.getNoticieroAudioWAV)
     .openapi(routes.updateNoticiero, handlers.update)
+    .openapi(routes.getLatestNoticiero, handlers.getLatestNoticiero)
+
 
 export default router;

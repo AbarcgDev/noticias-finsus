@@ -1,5 +1,6 @@
 import { createRoute, z } from "@hono/zod-openapi";
 import { NoticieroSchema } from "./noticieros.schema";
+import { getLatestNoticieroAudio } from "./noticieros.handlers";
 
 export const list = createRoute({
     method: "get",
@@ -69,12 +70,36 @@ export const getNoticieroAudioWAV = createRoute({
     }
 });
 
+export const getLatestNoticiero = createRoute({
+    method: "get",
+    path: "/noticieros/latest",
+    responses: {
+        200: {
+            content: {
+                "application/json": {
+                    schema: NoticieroSchema
+                }
+            },
+            description: "Devuelve la información del noticiero más reciente"
+        },
+        404: {
+            content: {
+                "application/json": {
+                    schema: z.object({
+                        message: z.string()
+                    })
+                }
+            },
+            description: "Reporta error si no encuentra noticiero"
+        }
+    }
+})
+
 export const getNoticieroLatestAudio = createRoute({
     method: "get",
     path: "/noticieros/latest/audio/{format}",
     request: {
         params: z.object({
-            id: z.uuid(),
             format: z.enum(["wav", "mp3"])
         }),
     },
@@ -159,3 +184,5 @@ export const updateNoticiero = createRoute({
 export type UpdateNoticeroRoute = typeof updateNoticiero;
 export type ListNoticierosRoute = typeof list;
 export type GetNoticieroAudioWAVRoute = typeof getNoticieroAudioWAV
+export type GetLatestNoticiero = typeof getLatestNoticiero
+export type GetLatestNoticieroAudio = typeof getNoticieroLatestAudio

@@ -12,11 +12,6 @@ const routes = [
 
 const app = createApp()
 
-app.use('*', serveStatic({
-  root: './',
-  manifest
-}))
-
 configureOpenApi(app);
 
 routes.forEach((route) => {
