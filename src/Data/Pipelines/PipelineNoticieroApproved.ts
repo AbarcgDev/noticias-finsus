@@ -18,8 +18,8 @@ export const pipelineNoticieroApproved = async (
         approvedNoticiero.publicationDate = new Date(),
             context.waitUntil((async (): Promise<void> => {
                 await pipelineAudio(approvedNoticiero, geminiAPIKey, audioRepository)
+                await latestNoticieroRepository.insertLatest(approvedNoticiero)
                 console.info("Noticiero más reciente actualizado")
-                latestNoticieroRepository.insertLatest(approvedNoticiero)
             })()
             )
     }

@@ -27,11 +27,11 @@ export const pipelineAudio = async (
       throw new Error("No se recibió información de audio desde Gemini TTS");
     }
     const wavBuffer = transformBase64ToWAV(base64Data);
-    await audioRepository.uploadAudioWAV(noticiero.id, wavBuffer)
-    console.info(("Audio WAV almacenado correctamente con id: " + noticiero.id))
-    //const mp3Buffer = await transformWavToMp3(wavBuffer)
-    //await audioRepository.uploadAudioMp3(noticiero.id, mp3Buffer)
-    //console.info(("Audio MP3 almacenado correctamente con id: " + noticiero.id))
+    await audioRepository.uploadAudioWAV(noticiero.id, wavBuffer);
+    console.info(("Audio WAV almacenado correctamente con id: " + noticiero.id));
+    const mp3Buffer = await transformWavToMp3(new Int16Array(wavBuffer.buffer));
+    await audioRepository.uploadAudioMp3(noticiero.id, mp3Buffer);
+    console.info(("Audio MP3 almacenado correctamente con id: " + noticiero.id));
   }
   catch (e) {
     console.error("Error generando audio: " + e)
