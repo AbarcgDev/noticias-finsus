@@ -6,11 +6,19 @@ import { generateGuionWithAI } from "../Extract/GenerateGuionWithAI"
 import { Noticiero } from "../Models/Noticiero"
 import { NoticieroState } from "../Models/NoticieroState"
 import { INoticierosRepository } from "../../Repositories/INoticierosRepositrory"
+import { getNotasFinsus } from "../Extract/GetNotasFinsus"
+import { INotasFinsusRepository } from "@/Repositories/INotasFinsusRepository"
 
-export const pipelineNoticieroDraft = async (rssRepository: IRSSChanelRepository, noticeroRepository: INoticierosRepository, geminiAPIKey: string) => {
+export const pipelineNoticieroDraft = async (
+  rssRepository: IRSSChanelRepository,
+  noticeroRepository: INoticierosRepository,
+  notasFinsusRepo: INotasFinsusRepository,
+  geminiAPIKey: string,
+) => {
   const fuentes = await rssRepository.findAll()
   const noticias = await pipelineNoticias(fuentes)
-  const guion = await generateGuionWithAI(noticias, geminiAPIKey)
+  const notasFinsus = await getNotasFinsus(notasFinsusRepo);
+  const guion = await generateGuionWithAI(noticias, notasFinsus, geminiAPIKey)
   const noticiero: Noticiero = {
     id: v4UUID(),
     title: "Noticiero Finsus - " + new Date().toLocaleDateString("es-MX"),

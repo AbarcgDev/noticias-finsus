@@ -46,4 +46,8 @@ export class RSSChanelRepository implements IRSSChanelRepository {
   async delete(id: string): Promise<void> {
     await this.db.prepare("DELETE * FROM rss_chanels WHERE id = ?").bind(id).run()
   }
+
+  dispose() {
+    (this.db as any).dispose();
+  }
 }

@@ -2,13 +2,14 @@
 import { guionNoticiero } from "@/AIPrompts.json"
 import { GoogleGenAI } from "@google/genai";
 import { Noticia } from "../Models/Noticia";
+import { NotaFinsus } from "../Models/NotasFinsus";
 
-export const generateGuionWithAI = async (noticias: Noticia[], apiKey: string): Promise<string> => {
-    const guionContent = callTextGenerationService(generatePrompt(noticias), apiKey);
+export const generateGuionWithAI = async (noticias: Noticia[], notasFinus: NotaFinsus[], apiKey: string): Promise<string> => {
+    const guionContent = callTextGenerationService(generatePrompt(noticias, notasFinus), apiKey);
     return guionContent
 }
 
-const generatePrompt = (noticias: Noticia[]): string => {
+const generatePrompt = (noticias: Noticia[], notasFinsus: NotaFinsus[]): string => {
     const prompt = [
         guionNoticiero.context.join("\n"),
         guionNoticiero.instruction.join("\n"),
@@ -18,6 +19,14 @@ const generatePrompt = (noticias: Noticia[]): string => {
           CONTENIDO: ${n.content}
           FUENTE: ${n.source}
         `
+        }
+        ).join("\n\n"),
+        notasFinsus.map((nota: NotaFinsus) => {
+            return `
+            ETIQUETA: NOTA FINSUS,
+            TITULO: ${nota.title},
+            CONTENIDO ${nota.description},
+            `
         }).join("\n\n")
     ].join("\n\n")
     return prompt;

@@ -10,24 +10,28 @@
       "proyectos socialmente justos: Personas y Ambiente."
     ],
     "instruction": [
-      "Vas a generar un guion de noticiero que dure 5 minutos",
+      "Vas a generar un guion de noticiero que dure  5 minutos como maximo",
       "El guion debe resumir la información en un tono dinámico, pero objetivo y neutral. Evita frases de relleno como 'en este guion' o 'esto es un guion'.",
       "El formato debe ser estrictamente el siguiente:\n",
       "NOMBRE_LOCUTOR: SEGMENTO\n",
       "Asegúrate de que la voz de los locutores se mantenga neutral y evite cualquier lenguaje emocional u opinativo.",
       "Los locutores deben comenzar con una bienvenida y despedirse al final.",
       "Menciona la bienvenida de parte de la empresa FINSUS.",
-      "Debe haber un locutor hombre(Fin) y una locutora mujer(Sus).",
+      "Debe haber un locutor hombre(FIN) y una locutora mujer(SUS). Durante la bienvenida deben presentarse por sus nombres cortos FIN y SUS",
       "El guion debe centrarse en presentar los hechos tal como fueron dados y mencionar la fuente.",
       "IMPORTANTE: Genera ÚNICAMENTE el texto del guion. No incluyas ningún tipo de encabezado, título, nota o decoración de formato como negritas, asteriscos o cualquier otra cosa fuera del formato 'NOMBRE_LOCUTOR: SEGMENTO'.",
-      "Los Locutores deben presentarse y presentar el programa",
+      "INDISPENSABLE: Los Locutores siempre deben presentarse con su nombre y presentar el programa",
       "El programa se titula Noticiero Finsus",
-      "Optimiza el guion para que pueda ser procesado por un modelo TTS"
+      "Optimiza el guion para que pueda ser procesado por un modelo TTS,",
+      "ALTA PRIORIDAD: El noticiero tiene una seccion especial llamada Boletin Finsus, que generas con prioridad cuando recibas notas etiquetadas como NOTA FINSUS y siempre debe de estar al principio del noticiero, los locutores no deben mencionar que es una seccion prioritaria, no es necesario mencionar la fuente de estas notas, cuando se terminen las NOTAS FINSUS los locutores deben anunciar el final de la seccion Boletin Finsus",
+      "FILTROS: Evita incluir noticias que incluyan temas políticos o que puedn generar polémica, enfócate en las noticias positivas. Tambien evita referencias a posibles competidores de Finsus",
+      "DESPEDIDA: Al final del noticiero los locutores deben despedirse de forma amigable, deseando buenos dias, dando sus nombres completos: FIN=Fineas,  SUS=Susana, indicando que esos son sus nombres y con frases como: ustedes me conocen como FIN, ustedes me conocen como SUS, somo FinSus",
+      "ORDEN DE NOMBRES: Siempre debe mencionarse primero FIN y despues SUS, el orden de estos nombres es significativo para la marca."
     ]
   },
   "audioNoticiero": {
     "instruction": [
-      "Genera el audio de este noticiero, manten a los narradores en un tono informativo"
+      "Genera el audio de este noticiero, manten a los narradores en un tono informativo y positivo."
     ]
   }
 }

@@ -41,4 +41,8 @@ export class AudioR2Repository implements IAudioRepository {
         }
         return audio.blob();
     }
+
+    dispose() {
+        (this.bucket as any).dispose();
+    }
 }

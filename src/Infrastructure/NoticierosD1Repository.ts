@@ -67,4 +67,8 @@ export class NoticierosD1Repository implements INoticierosRepository {
     delete(id: string): Promise<Noticiero> {
         throw new Error("Method not implemented.");
     }
+
+    dispose() {
+        (this.db as any).dispose();
+    }
 }

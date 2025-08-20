@@ -24,6 +24,9 @@ const filterByCensor = (noticias: Noticia[]) => {
     "politica",
     "stori",
     "nubank",
+    "spin",
+    "nacional financiera",
+    "nu méxico"
   ];
 
   return noticias.filter((noticia: Noticia) => {

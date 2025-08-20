@@ -20,5 +20,7 @@ export class LatestNoticieroKVRepository implements ILatestNoticieroRepository {
             JSON.stringify(noticiero)
         )
     }
-
+    dispose() {
+        (this.kv as any).dispose();
+    }
 }

@@ -14,13 +14,10 @@ export const pipelineNoticieroApproved = async (
     console.info("Generando audio de noticiero aprobado")
     const approvedNoticiero = await noticeroRepository.findById(noticieroId);
     if (approvedNoticiero) {
-        approvedNoticiero.state = NoticieroState.APPROVED
-        approvedNoticiero.publicationDate = new Date(),
-            context.waitUntil((async (): Promise<void> => {
-                await pipelineAudio(approvedNoticiero, geminiAPIKey, audioRepository)
-                await latestNoticieroRepository.insertLatest(approvedNoticiero)
-                console.info("Noticiero más reciente actualizado")
-            })()
-            )
+        approvedNoticiero.state = NoticieroState.APPROVED;
+        approvedNoticiero.publicationDate = new Date();
+        await pipelineAudio(approvedNoticiero, geminiAPIKey, audioRepository)
+        await latestNoticieroRepository.insertLatest(approvedNoticiero)
+        console.info("Noticiero más reciente actualizado")
     }
 }

@@ -7,6 +7,8 @@ import { AudioR2Repository } from "../../../../Infrastructure/NoticieroAudioR2Re
 import { NoticieroState } from "@/Data/Models/NoticieroState";
 import { pipelineNoticieroApproved } from "@/Data/Pipelines/PipelineNoticieroApproved";
 import { LatestNoticieroKVRepository } from "@/Infrastructure/LatestNoticieroKVRepository";
+import { AudioGenParams } from "@/Infrastructure/AudioGenerationWorkflow";
+import { env } from "cloudflare:workers";
 export const list: ApiRouteHandler<ListNoticierosRoute> = async (c: Context) => {
     const noticierosRepository = new NoticierosD1Repository(c.env.DB);
     const noticieros = await noticierosRepository.findAll();
@@ -64,21 +66,16 @@ export const update: ApiRouteHandler<UpdateNoticeroRoute> = async (c: Context) =
         console.info(noticieroUpdated);
         // Llama proceso de generacion de audios si se aprueba un guion
         if (updatedData.state === NoticieroState.APPROVED) {
-            c.executionCtx.waitUntil(
-                pipelineNoticieroApproved(
-                    new AudioR2Repository(c.env.NOTICIEROS_STORAGE),
-                    noticierosRepo,
-                    new LatestNoticieroKVRepository(c.env.LATEST_NOTICIERO_ST),
-                    c.env.GEMINI_API_KEY,
-                    id,
-                    c.executionCtx
-                )
-            )
+            const params: AudioGenParams = {
+                noticieroId: id,
+            }
+            const workflowInstance = await c.env.AUDIO_GEN_WORKFLOW.create({ params });
+            console.info("Audio generandose en workflow: " + workflowInstance.id)
         }
         return c.json({ message: "Noticiero actualizado" }, { status: 200 });
     } catch (e) {
         console.error("Error actualizando noticiero" + e)
-        throw new Error("Error ineesperado actualizando noticiero")
+        throw new Error("Error inesperado actualizando noticiero")
     }
 }
 
