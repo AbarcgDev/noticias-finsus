@@ -42,10 +42,6 @@
 			"id": "c482d2ff243044beb897e7639d92ac4a"
 		}
 	],
-	"assets": {
-		"directory": "Frontend/dist",
-		"binding": "ASSETS"
-	},
 	"workflows": [
 		{
 			"name": "audio-gen-workflow",

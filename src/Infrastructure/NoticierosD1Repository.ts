@@ -7,36 +7,48 @@ export class NoticierosD1Repository implements INoticierosRepository {
 
     async findById(id: string): Promise<Noticiero | null> {
         const query = this.db.prepare("SELECT * FROM noticieros WHERE id = ?");
-        const result: Noticiero | null = await query.bind(id).first()
+        const result: any = await query.bind(id).first();
+
         if (!result) {
-            return Promise.resolve(null);
+            return null;
         }
-        return {
+
+        const noticiero: Noticiero = {
             id: result.id,
             title: result.title,
             guion: result.guion,
             state: result.state,
-            publicationDate: result.publicationDate
-        } as Noticiero;
+            publicationDate: new Date(result.publicationDate),
+            approvedBy: result.approvedBy,
+        };
+
+        // Liberar el stub devuelto por D1
+        result.dispose?.();
+
+        return noticiero;
     }
 
+
     async findAll(): Promise<Noticiero[]> {
-        const { results } = await this.db.prepare("SELECT * FROM noticieros").all()
-        let resolution: Noticiero[] = [];
-        if (results) {
-            results.forEach((row: any) => {
-                resolution.push({
-                    id: row.id,
-                    title: row.title,
-                    guion: row.guion,
-                    state: row.state,
-                    publicationDate: row.publicationDate
-                } as Noticiero)
-            }
-            );
-        }
-        return Promise.resolve(resolution);
+        const { results }: any = await this.db.prepare("SELECT * FROM noticieros").all();
+
+        if (!results) return [];
+
+        const resolution: Noticiero[] = results.map((row: any) => ({
+            id: row.id,
+            title: row.title,
+            guion: row.guion,
+            state: row.state,
+            publicationDate: new Date(row.publicationDate),
+            approvedBy: row.approvedBy
+        } as Noticiero));
+
+        // Muy importante: liberar el stub del .all()
+        results.dispose?.();
+
+        return resolution;
     }
+
 
     async save(noticiero: Noticiero): Promise<void> {
         try {
