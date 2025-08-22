@@ -8,7 +8,7 @@ export const filterNews = (noticias: Noticia[]): Noticia[] => {
 
 const filterByDate = (noticias: Noticia[]): Noticia[] => {
   const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 1);
 
   return noticias.filter(noticia => noticia.publicationDate >= sevenDaysAgo);
 }
