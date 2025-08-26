@@ -1,16 +1,30 @@
 {
 	"name": "noticias-finsus",
 	"type": "module",
+	"version": "0.5.0",
 	"scripts": {
-		"dev": "wrangler dev",
-		"deploy": "wrangler deploy --minify",
-		"cf-typegen": "wrangler types --env-interface CloudflareBindings"
+		"cf-typegen": "wrangler types --env-interface CloudflareBindings",
+		"dev": "wrangler dev"
 	},
 	"dependencies": {
+		"@breezystack/lamejs": "^1.2.7",
+		"@cloudflare/actors": "0.0.1-beta.3",
+		"@ffmpeg/core": "^0.12.10",
+		"@ffmpeg/ffmpeg": "^0.12.15",
+		"@ffmpeg/util": "^0.12.2",
+		"@google/genai": "^1.13.0",
+		"@hono/node-server": "^1.19.0",
 		"@hono/zod-openapi": "^1.1.0",
-		"hono": "^4.8.12"
+		"@types/uuid": "^10.0.0",
+		"fast-xml-parser": "^4.2.4",
+		"genai": "^0.0.18",
+		"hono": "^4.8.12",
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1",
+		"uuid": "^11.1.0"
 	},
 	"devDependencies": {
+		"sonarqube-scanner": "^4.3.0",
 		"wrangler": "^4.28.0"
 	}
 }

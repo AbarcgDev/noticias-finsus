@@ -1,0 +1,6 @@
+projectKey=noticiero-finsus
+serverUrl=http://localhost:9000
+serverVersion=25.8.0.112029
+dashboardUrl=http://localhost:9000/dashboard?id=noticiero-finsus
+ceTaskId=c3041cb4-8a2b-4a99-8248-14abfe715f60
+ceTaskUrl=http://localhost:9000/api/ce/task?id=c3041cb4-8a2b-4a99-8248-14abfe715f60

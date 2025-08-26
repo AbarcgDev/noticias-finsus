@@ -6,26 +6,52 @@
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "noticias-finsus",
 	"main": "src/index.ts",
-	"compatibility_date": "2025-08-06",
+	"compatibility_date": "2025-08-03",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
 	"dev": {
 		"ip": "0.0.0.0",
 		"port": 8787,
 	},
-	"assets": {
-		"binding": "ASSETS",
-		"directory": "./public",
-	},
 	"d1_databases": [
 		{
-			"database_id": "0f1e2d3c4b5a6f7e8d9c0b1a2b3c4d5e",
+			"database_id": "cb99fb45-3fec-4398-a044-df0122bd05b0",
 			"binding": "DB",
 			"database_name": "noticias-finsus",
-			"migrations": "./migrations"
+		},
+	],
+	"r2_buckets": [
+		{
+			"bucket_name": "noticieros",
+			"binding": "NOTICIEROS_STORAGE"
 		}
 	],
 	"observability": {
 		"enabled": true,
 	},
+	"triggers": {
+		"crons": [
+			"0 2 * * mon"
+			//"* * * * *"
+		],
+	},
+	"kv_namespaces": [
+		{
+			"binding": "LATEST_NOTICIERO_ST",
+			"id": "c482d2ff243044beb897e7639d92ac4a"
+		}
+	],
+	"workflows": [
+		{
+			"name": "audio-gen-workflow",
+			"binding": "AUDIO_GEN_WORKFLOW",
+			"class_name": "AudioGenerationWorkflow"
+		}
+	]
+	//"limits": {
+	//"cpu_ms": 300000
+	//}
 	/**
    * Smart Placement
    * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
