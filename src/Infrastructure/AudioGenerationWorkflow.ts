@@ -38,9 +38,10 @@ export class AudioGenerationWorkflow extends WorkflowEntrypoint<Cloudflare.Env, 
                 });
 
                 await step.do("Actualizando Noticiero", async () => {
-                    approvedNoticiero.state = NoticieroState.APPROVED;
+                    approvedNoticiero.state = NoticieroState.PUBLISHED;
                     approvedNoticiero.publicationDate = new Date();
                     await latestNoticieroRepository.insertLatest(approvedNoticiero)
+                    await noticeroRepository.save(approvedNoticiero);
                 })
 
                 console.info("Noticiero más reciente actualizado")
@@ -100,7 +101,7 @@ export class AudioGenerationWorkflow extends WorkflowEntrypoint<Cloudflare.Env, 
     generateAudioWithAI = async (instruction: string, content: string, apiKey: string): Promise<string> => {
         const gemini = new GoogleGenAI({ apiKey: apiKey })
         const response: GenerateContentResponse = await gemini.models.generateContent({
-            model: "gemini-2.5-flash-preview-tts",
+            model: "gemini-2.5-pro-preview-tts",
             contents: [{ parts: [{ text: instruction + "\n" + content, }] }],
             config: {
                 responseModalities: ['AUDIO'],

@@ -1,3 +1,4 @@
+import { getLatestDraft } from "@/Presentation/restApi/routes/noticieros/noticieros.handlers";
 import { Noticiero } from "../Data/Models/Noticiero";
 import { INoticierosRepository } from "../Repositories/INoticierosRepositrory";
 import { raw } from "hono/html";
@@ -51,17 +52,23 @@ export class NoticierosD1Repository implements INoticierosRepository {
 
 
     async save(noticiero: Noticiero): Promise<void> {
+        console.info("almacenando: " + noticiero)
         try {
             const query = this.db.prepare(`
             INSERT INTO noticieros (
-            id, 
-            title,
-            guion,
-            state,
-            approvedBy,  
-            publicationDate) 
-            VALUES
-            (?, ?, ?, ?, ?, ?);
+                id, 
+                title,
+                guion,
+                state,
+                approvedBy,  
+                publicationDate
+            ) VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+                title = excluded.title,
+                guion = excluded.guion,
+                state = excluded.state,
+                approvedBy = excluded.approvedBy,
+                publicationDate = excluded.publicationDate;
             `);
             await query.bind(
                 noticiero.id,
@@ -82,5 +89,31 @@ export class NoticierosD1Repository implements INoticierosRepository {
 
     dispose() {
         (this.db as any).dispose();
+    }
+
+    async getLatestDraft(): Promise<Noticiero | null> {
+        try {
+            const query = this.db.prepare(`
+            SELECT * FROM noticieros
+            WHERE state = "noticiero.drafted"
+            ORDER BY publicationDate DESC
+            LIMIT 1
+            `);
+            const result: any = await query.first();
+            if (!result) {
+                return null
+            }
+            return {
+                id: result.id,
+                title: result.title,
+                state: result.state,
+                guion: result.guion,
+                publicationDate: new Date(result.publicationDate),
+                approvedBy: result.approvedBy
+            } as Noticiero
+        } catch (e: any) {
+            console.error("Error obteniendo noticiero: " + e);
+            throw new Error("Error obteniendo ultimo draft de noticiero")
+        }
     }
 }

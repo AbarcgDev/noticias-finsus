@@ -1,6 +1,6 @@
 import { ApiRouteHandler } from "../../../../lib/types";
 import { Context } from "hono";
-import { GetLatestNoticiero, GetLatestNoticieroAudio, GetNoticieroAudioWAVRoute, ListNoticierosRoute, UpdateNoticeroRoute } from "./noticieros.routes";
+import { CreateNoticieroRoute, GetByIDRoute, GetLatestDraftRoute, GetLatestNoticiero, GetLatestNoticieroAudio, GetNoticieroAudioWAVRoute, ListNoticierosRoute, UpdateNoticeroRoute } from "./noticieros.routes";
 import { NoticierosD1Repository } from "../../../../Infrastructure/NoticierosD1Repository";
 import { Noticiero } from "../../../../Data/Models/Noticiero";
 import { AudioR2Repository } from "../../../../Infrastructure/NoticieroAudioR2Repository";
@@ -9,6 +9,10 @@ import { pipelineNoticieroApproved } from "@/Data/Pipelines/PipelineNoticieroApp
 import { LatestNoticieroKVRepository } from "@/Infrastructure/LatestNoticieroKVRepository";
 import { AudioGenParams } from "@/Infrastructure/AudioGenerationWorkflow";
 import { env } from "cloudflare:workers";
+import { pipelineNoticieroDraft } from "@/Data/Pipelines/PipelineNoticieroDraft";
+import { RSSChanelRepository } from "@/Infrastructure/RssChanelD1Repository";
+import { NotasFinsusD1Repository } from "@/Infrastructure/NotasFinsusD1Repository";
+
 export const list: ApiRouteHandler<ListNoticierosRoute> = async (c: Context) => {
     const noticierosRepository = new NoticierosD1Repository(c.env.DB);
     const noticieros = await noticierosRepository.findAll();
@@ -23,6 +27,33 @@ export const list: ApiRouteHandler<ListNoticierosRoute> = async (c: Context) => 
         publicationDate: noticiero.publicationDate,
         approvedBy: noticiero.approvedBy
     })), { status: 200 });
+}
+
+export const create: ApiRouteHandler<CreateNoticieroRoute> = async (c: Context) => {
+    const noticiero = await pipelineNoticieroDraft(
+        new RSSChanelRepository(c.env.DB),
+        new NoticierosD1Repository(c.env.DB),
+        new NotasFinsusD1Repository(c.env.DB),
+        env.GEMINI_API_KEY
+    )
+    return c.json({ noticiero_id: noticiero.id }, 200)
+}
+
+export const getByID: ApiRouteHandler<GetByIDRoute> = async (c: Context) => {
+    const { id } = c.req.param()
+    const repo = new NoticierosD1Repository(c.env.DB);
+    const noticiero = await repo.findById(id);
+    if (!noticiero) {
+        return c.json({ message: "Noticiero no encontrado" }, 404);
+    }
+    return c.json({
+        id: noticiero.id,
+        title: noticiero.title,
+        guion: noticiero.guion,
+        state: noticiero.state,
+        publicationDate: noticiero.publicationDate,
+        approvedBy: noticiero.approvedBy
+    }, 200)
 }
 
 export const getNoticieroAudioWAV: ApiRouteHandler<GetNoticieroAudioWAVRoute> = async (c: Context) => {
@@ -52,15 +83,15 @@ export const update: ApiRouteHandler<UpdateNoticeroRoute> = async (c: Context) =
         if (!noticiero) {
             return c.json({ message: "No se encontró el noticiero: " + id }, { status: 404 })
         }
-        const updatedData: Noticiero = await c.req.json()
+        const updatedData = await c.req.json()
         const noticieroUpdated = {
             id: noticiero.id,
             title: updatedData.title ?? noticiero.title,
             state: updatedData.state ?? noticiero.state,
             guion: updatedData.guion ?? noticiero.guion,
-            approvedBy: updatedData.guion ?? noticiero.guion,
-            publicationDate: new Date(updatedData.publicationDate) ?? noticiero.publicationDate,
-        } as Noticiero
+            approvedBy: updatedData.approvedBy ?? noticiero.approvedBy,
+            publicationDate: noticiero.publicationDate,
+        }
         await noticierosRepo.save(noticieroUpdated);
         console.info("Noticiero actualizado")
         console.info(noticieroUpdated);
@@ -124,4 +155,20 @@ export const getLatestNoticieroAudio: ApiRouteHandler<GetLatestNoticieroAudio> =
     c.header("Content-Type", contentType);
     c.header("Content-Disposition", `inline; filename="${noticiero.id}.${format}"`);
     return c.body(audioBin, 200);
+}
+
+export const getLatestDraft: ApiRouteHandler<GetLatestDraftRoute> = async (c: Context) => {
+    const noticierosRepo = new NoticierosD1Repository(c.env.DB);
+    const noticiero = await noticierosRepo.getLatestDraft();
+    if (!noticiero) {
+        return c.json({ message: "No se encuentra draft reciente" }, 404)
+    }
+    return c.json({
+        id: noticiero.id,
+        title: noticiero.title,
+        guion: noticiero.guion,
+        state: noticiero.state,
+        publicationDate: noticiero.publicationDate,
+        approvedBy: noticiero.approvedBy,
+    }, 200)
 }

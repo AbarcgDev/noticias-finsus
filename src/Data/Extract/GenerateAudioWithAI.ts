@@ -4,7 +4,7 @@ export const generateAudioWithAI = async (instruction: string, content: string, 
   const gemini = new GoogleGenAI({ apiKey: apiKey })
   const response: GenerateContentResponse = await gemini.models.generateContent({
     model: "gemini-2.5-flash-preview-tts",
-    contents: [{ parts: [{ text: instruction + "\n" + content, }] }],
+    contents: [{ parts: [{ text: instruction + "\n\n" + content, }] }],
     config: {
       responseModalities: ['AUDIO'],
       speechConfig: {

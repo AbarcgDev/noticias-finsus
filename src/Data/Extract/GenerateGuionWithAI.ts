@@ -34,21 +34,29 @@ const generatePrompt = (noticias: Noticia[], notasFinsus: NotaFinsus[]): string 
 
 const callTextGenerationService = async (prompt: string, apiKey: string): Promise<string> => {
     const gemini: GoogleGenAI = new GoogleGenAI({ apiKey: apiKey })
-    try {
-        const model = "gemini-2.5-flash"
-        console.info("Generando texto con Gemini, modelo: ", model)
-        const response = await gemini.models.generateContent({
-            model: model,
-            contents: prompt
-        })
-        const result = response.text
-        if (!result) {
-            throw new Error("El modelo no devolvio texto valido")
+    const maxRetries = 3;
+    let attempts = 0;
+    while (attempts < maxRetries) {
+        try {
+            const model = "gemini-2.5-flash"
+            console.info("Generando texto con Gemini, modelo: ", model)
+            const response = await gemini.models.generateContent({
+                model: model,
+                contents: prompt
+            })
+            const result = response.text
+            if (!result) {
+                throw new Error("El modelo no devolvio texto valido")
+            }
+            return result;
         }
-        return result;
+        catch (e) {
+            console.error("Error generando texto: ", e)
+            attempts++;
+            if (attempts >= maxRetries) {
+                throw new Error("Fallo en la generacion de texto por IA")
+            }
+        }
     }
-    catch (e) {
-        console.error("Error generando texto: ", e)
-        throw new Error("Fallo en la generacion de texto por IA")
-    }
+    return "";
 }

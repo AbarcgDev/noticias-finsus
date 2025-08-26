@@ -1,6 +1,7 @@
 import { createRoute, z } from "@hono/zod-openapi";
 import { NoticieroSchema } from "./noticieros.schema";
 import { getLatestNoticieroAudio } from "./noticieros.handlers";
+import { NoticieroState } from "@/Data/Models/NoticieroState";
 
 export const list = createRoute({
     method: "get",
@@ -23,6 +24,54 @@ export const list = createRoute({
                 }
             },
             description: "No se encontraron guiones",
+        },
+    }
+});
+
+
+export const getByID = createRoute({
+    method: "get",
+    path: "/noticieros/{id}",
+    request: {
+        params: z.object({
+            id: z.uuid(),
+        }),
+    },
+    responses: {
+        200: {
+            content: {
+                "application/json": {
+                    schema: NoticieroSchema
+                }
+            },
+            description: "Devuelve noticiero publicados",
+        },
+        404: {
+            content: {
+                "application/json": {
+                    schema: z.object({
+                        message: z.string()
+                    })
+                }
+            },
+            description: "No se encontraron noticieros",
+        },
+    }
+});
+
+export const create = createRoute({
+    method: "post",
+    path: "/noticieros",
+    responses: {
+        200: {
+            content: {
+                "application/json": {
+                    schema: z.object({
+                        noticiero_id: z.string()
+                    })
+                }
+            },
+            description: "Inicia creacion de noticiero",
         },
     }
 });
@@ -137,6 +186,31 @@ export const getNoticieroLatestAudio = createRoute({
     }
 });
 
+export const getLatestDraft = createRoute({
+    method: "get",
+    path: "/noticieros/latest/draft",
+    responses: {
+        200: {
+            content: {
+                "application/json": {
+                    schema: NoticieroSchema
+                },
+            },
+            description: "Devuelve el ultimo borrador",
+        },
+        404: {
+            content: {
+                "application/json": {
+                    schema: z.object({
+                        message: z.string()
+                    })
+                }
+            },
+            description: "No se encontraron guiones",
+        },
+    }
+});
+
 export const updateNoticiero = createRoute({
     method: "put",
     path: "/noticieros/{id}",
@@ -150,7 +224,7 @@ export const updateNoticiero = createRoute({
                     schema: z.object({
                         title: z.string().optional(),
                         guion: z.string().optional(),
-                        state: z.string().optional(),
+                        state: z.enum([NoticieroState.APPROVED]),
                         approvedBy: z.string().optional()
                     })
                 }
@@ -186,3 +260,6 @@ export type ListNoticierosRoute = typeof list;
 export type GetNoticieroAudioWAVRoute = typeof getNoticieroAudioWAV
 export type GetLatestNoticiero = typeof getLatestNoticiero
 export type GetLatestNoticieroAudio = typeof getNoticieroLatestAudio
+export type CreateNoticieroRoute = typeof create;
+export type GetByIDRoute = typeof getByID;
+export type GetLatestDraftRoute = typeof getLatestDraft;
