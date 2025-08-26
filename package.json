@@ -1,7 +1,7 @@
 {
 	"name": "noticias-finsus",
 	"type": "module",
-	"version": "1.0.0",
+	"version": "0.5.0",
 	"scripts": {
 		"cf-typegen": "wrangler types --env-interface CloudflareBindings",
 		"dev": "wrangler dev"
