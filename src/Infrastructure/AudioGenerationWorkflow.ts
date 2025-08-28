@@ -24,12 +24,10 @@ export class AudioGenerationWorkflow extends WorkflowEntrypoint<Cloudflare.Env, 
         const audioRepository = new AudioR2Repository(this.env.NOTICIEROS_STORAGE)
         const latestNoticieroRepository = new LatestNoticieroKVRepository(this.env.LATEST_NOTICIERO_ST)
         console.info("Generando audio de noticiero aprobado: " + event.payload.noticieroId)
-
-
-
         const approvedNoticiero = await step.do("Obteniendo información del noticiero", async () => {
             return await noticeroRepository.findById(event.payload.noticieroId);
         })
+
 
         try {
             if (approvedNoticiero) {
