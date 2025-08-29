@@ -32,7 +32,7 @@ Apiroutes.forEach((route) => {
   app.route("/api", route);
 })
 
-app.route("auth/", login);
+app.route("/auth", login);
 
 export default app;
 
