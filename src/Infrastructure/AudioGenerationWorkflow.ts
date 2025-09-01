@@ -10,6 +10,9 @@ import { Noticiero } from "@/Data/Models/Noticiero";
 import { GenerateContentResponse, GoogleGenAI } from "@google/genai";
 import { audioNoticiero } from "../AIPrompts.json"
 import * as lame from '@breezystack/lamejs';
+import { GetKeyFunction } from "jose";
+import { splitGuion } from "@/Data/Trasformations/SplitGuion";
+import { v4 } from "uuid";
 
 type WavBuffer = Uint8Array;
 type Mp3Buffer = Uint8Array
@@ -20,6 +23,7 @@ export type AudioGenParams = {
 
 export class AudioGenerationWorkflow extends WorkflowEntrypoint<Cloudflare.Env, AudioGenParams> {
     async run(event: WorkflowEvent<AudioGenParams>, step: WorkflowStep) {
+        const parts: Map<string, string> = new Map();
         const noticeroRepository = new NoticierosD1Repository(this.env.DB)
         const audioRepository = new AudioR2Repository(this.env.NOTICIEROS_STORAGE)
         const latestNoticieroRepository = new LatestNoticieroKVRepository(this.env.LATEST_NOTICIERO_ST)
@@ -28,12 +32,66 @@ export class AudioGenerationWorkflow extends WorkflowEntrypoint<Cloudflare.Env, 
             return await noticeroRepository.findById(event.payload.noticieroId);
         })
 
+        if (approvedNoticiero) {
+            const partsStrings = splitGuion(approvedNoticiero.guion);
+            partsStrings.forEach((part) => {
+                parts.set(part, "");
+            })
+            const PCMs = await step.do("Generando audios PCM", async () => {
+                try {
+                    let idx = 1;
+                    for (const [key, value] of parts) {
+                        if (value !== "") {
+                            console.info("Fragmento ya generado, omitiendo ----");
+                            continue;
+                        }
+                        console.info("Generando audio de parte: " + idx++);
+                        const base64 = await this.generateAudioWithAI(
+                            audioNoticiero.instruction.join("/n"),
+                            key,
+                            this.env.GEMINI_API_KEY,
+                        )
+                        parts.set(key, base64);
+                    }
+                    return [...parts.values()];
+                } catch (e: any) {
+                    console.error(e);
+                }
+            });
 
-        try {
-            if (approvedNoticiero) {
-                await step.do("Generando audio", async () => {
-                    await this.pipelineAudio(approvedNoticiero, this.env.GEMINI_API_KEY, audioRepository)
+            if (PCMs) {
+
+                const bufferBase64 = await step.do("Creando Buffer", async () => {
+                    const buffers = PCMs.map((pcm) => this.fbase64ToUint8Array(pcm))
+                    const totalLength = buffers.reduce((acc, arr) => acc + arr.length, 0);
+                    const result = new Uint8Array(totalLength);
+
+                    let offset = 0;
+                    for (const chunk of buffers) {
+                        result.set(chunk, offset);
+                        offset += chunk.length;
+                    }
+
+                    return result;
                 });
+
+                const audioWav = await step.do("Creando WAV", async () => {
+                    return this.transformPCMToWAV(bufferBase64)
+                })
+
+                const audioMp3 = await step.do("Creando MP3", async () => {
+                    return await this.transformWavToMp3(new Int16Array(audioWav.buffer));
+                })
+
+                await step.do("Almacenando WAV", async () => {
+                    await audioRepository.uploadAudioWAV(approvedNoticiero.id, audioWav);
+                    console.info(("Audio WAV almacenado correctamente con id: " + approvedNoticiero.id));
+                })
+
+                await step.do("Almacenando MP3", async () => {
+                    await audioRepository.uploadAudioMp3(approvedNoticiero.id, audioMp3);
+                    console.info(("Audio MP3 almacenado correctamente con id: " + approvedNoticiero.id));
+                })
 
                 await step.do("Actualizando Noticiero", async () => {
                     approvedNoticiero.state = NoticieroState.PUBLISHED;
@@ -41,99 +99,83 @@ export class AudioGenerationWorkflow extends WorkflowEntrypoint<Cloudflare.Env, 
                     await latestNoticieroRepository.insertLatest(approvedNoticiero)
                     await noticeroRepository.save(approvedNoticiero);
                 })
-
-                console.info("Noticiero más reciente actualizado")
             }
-        } finally {
+            console.info("Noticiero más reciente actualizado")
         }
     }
 
-    /// Crea y almacena archivos de audio
-    pipelineAudio = async (
-        noticiero: Noticiero,
-        apiKey: string,
-        audioRepository: IAudioRepository
-    ): Promise<void> => {
-        console.info("Generando audio con Gemini");
-        let wavBuffer = null;
-        let mp3Buffer = null;
-        let base64Data = null;
-        try {
-            const aiResponse = await this.generateAudioWithAI(
-                audioNoticiero.instruction.join("\n"),
-                noticiero.guion,
-                apiKey
-            )
-            if (!aiResponse) {
-                throw new Error("No se recibió información de audio desde Gemini TTS");
-            }
-            wavBuffer = this.transformBase64ToWAV(aiResponse);
-            await audioRepository.uploadAudioWAV(noticiero.id, wavBuffer);
-            console.info(("Audio WAV almacenado correctamente con id: " + noticiero.id));
-            mp3Buffer = await this.transformWavToMp3(new Int16Array(wavBuffer.buffer));
-            await audioRepository.uploadAudioMp3(noticiero.id, mp3Buffer);
-            console.info(("Audio MP3 almacenado correctamente con id: " + noticiero.id));
-            (aiResponse as any).dispose?.();
-        }
-        catch (e) {
-            console.error("Error generando audio: " + e)
-        } finally {
-            if (wavBuffer) {
-                wavBuffer.fill?.(0); // Limpiar contenido si es posible
-                wavBuffer = null;
-            }
-
-            if (mp3Buffer) {
-                mp3Buffer.fill?.(0); // Limpiar contenido si es posible  
-                mp3Buffer = null;
-            }
-
-            if (base64Data) {
-                base64Data = null;
-            }
-
-
-        }
+    wait = (ms: number): Promise<void> => {
+        return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
-    generateAudioWithAI = async (instruction: string, content: string, apiKey: string): Promise<string> => {
-        const gemini = new GoogleGenAI({ apiKey: apiKey })
-        const response: GenerateContentResponse = await gemini.models.generateContent({
-            model: "gemini-2.5-pro-preview-tts",
-            contents: [{ parts: [{ text: instruction + "\n" + content, }] }],
-            config: {
-                responseModalities: ['AUDIO'],
-                speechConfig: {
-                    multiSpeakerVoiceConfig: {
-                        speakerVoiceConfigs: [
-                            {
-                                speaker: 'FIN',
-                                voiceConfig: {
-                                    prebuiltVoiceConfig: { voiceName: 'Charon' }
-                                }
+    generateAudioWithAI = async (
+        instruction: string,
+        content: string,
+        apiKey: string
+    ): Promise<string> => {
+        const maxRetries = 3;
+        let retryCount = 0;
+        let delay = 500; // 500 ms inicial
+
+        while (true) {
+            try {
+                const gemini = new GoogleGenAI({ apiKey });
+                const response = await gemini.models.generateContent({
+                    model: "gemini-2.5-flash-preview-tts",
+                    contents: [{ parts: [{ text: `${instruction}\n${content}` }] }],
+                    config: {
+                        responseModalities: ["AUDIO"],
+                        speechConfig: {
+                            multiSpeakerVoiceConfig: {
+                                speakerVoiceConfigs: [
+                                    {
+                                        speaker: "FINEAS",
+                                        voiceConfig: {
+                                            prebuiltVoiceConfig: { voiceName: "Charon" },
+                                        },
+                                    },
+                                    {
+                                        speaker: "SUSANA",
+                                        voiceConfig: {
+                                            prebuiltVoiceConfig: { voiceName: "Leda" },
+                                        },
+                                    },
+                                ],
                             },
-                            {
-                                speaker: 'SUS',
-                                voiceConfig: {
-                                    prebuiltVoiceConfig: { voiceName: 'Leda' }
-                                }
-                            }
-                        ]
-                    }
+                        },
+                    },
+                });
+
+                const base64Data =
+                    response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data ?? "";
+
+                // Liberar recursos si existen
+                (response as any).dispose?.();
+                (gemini as any).dispose?.();
+
+                return base64Data;
+            } catch (e: any) {
+                retryCount++;
+                console.error(`Error al generar audio (intento ${retryCount}):`, e);
+
+                if (retryCount >= maxRetries) {
+                    throw new Error("No se pudo generar audio después de varios intentos");
                 }
+
+                console.log(`Reintentando en ${delay} ms...`);
+                await this.wait(delay);
+                delay *= 2; // Retardo exponencial en cada reintento
             }
-        })
-        const base64Data = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data ?? null;
-
-        // liberar stub
-        (response as any).dispose?.();
-        (gemini as any).dispose?.();
-
-        return base64Data ?? "";
+        }
     }
 
-    transformBase64ToWAV = (base64Data: string, channels = 1, rate = 24000, sampleWidth = 2): WavBuffer => {
-        const pcmData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+
+    transformPCMToWAV = (
+        pcmData: Uint8Array,
+        channels = 1,
+        rate = 24000,
+        sampleWidth = 2
+    ): Uint8Array => {
         const dataLength = pcmData.length;
         const buffer = new ArrayBuffer(44 + dataLength);
         const view = new DataView(buffer);
@@ -145,10 +187,10 @@ export class AudioGenerationWorkflow extends WorkflowEntrypoint<Cloudflare.Env, 
         };
 
         // RIFF header
-        writeString(0, 'RIFF');
+        writeString(0, "RIFF");
         view.setUint32(4, 36 + dataLength, true); // file length - 8
-        writeString(8, 'WAVE');
-        writeString(12, 'fmt ');
+        writeString(8, "WAVE");
+        writeString(12, "fmt ");
         view.setUint32(16, 16, true); // PCM chunk size
         view.setUint16(20, 1, true); // format = PCM
         view.setUint16(22, channels, true);
@@ -156,15 +198,16 @@ export class AudioGenerationWorkflow extends WorkflowEntrypoint<Cloudflare.Env, 
         view.setUint32(28, rate * channels * sampleWidth, true); // byte rate
         view.setUint16(32, channels * sampleWidth, true); // block align
         view.setUint16(34, sampleWidth * 8, true); // bits per sample
-        writeString(36, 'data');
+        writeString(36, "data");
         view.setUint32(40, dataLength, true);
 
-        // Copiar datos PCM después del header
+        // Copiar PCM después del header
         const wavBytes = new Uint8Array(buffer);
         wavBytes.set(pcmData, 44);
 
         return wavBytes;
-    }
+    };
+
 
     transformWavToMp3 = async (wavBuffer16: Int16Array): Promise<Mp3Buffer> => {
         // Parámetros de codificación: 
@@ -195,4 +238,14 @@ export class AudioGenerationWorkflow extends WorkflowEntrypoint<Cloudflare.Env, 
         const finalMp3Buffer = new Uint8Array(mp3Data.flatMap(arr => Array.from(arr)));
         return finalMp3Buffer
     };
+
+    fbase64ToUint8Array = (base64: string): Uint8Array => {
+        const binaryString = atob(base64);
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+        return bytes;
+    }
 }

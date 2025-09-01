@@ -24,7 +24,7 @@ app.use('*', cors({
   allowHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.use("/api/*", authMiddlware);
+//app.use("/api/*", authMiddlware);
 
 configureOpenApi(app);
 
