@@ -48,6 +48,22 @@
 			"binding": "AUDIO_GEN_WORKFLOW",
 			"class_name": "AudioGenerationWorkflow"
 		}
+	],
+	"durable_objects": {
+		"bindings": [
+			{
+				"name": "AUDIO_GENERATOR",
+				"class_name": "DurableAudioGenerator"
+			}
+		]
+	},
+	"migrations": [
+		{
+			"tag": "v1",
+			"new_sqlite_classes": [
+				"DurableAudioGenerator"
+			]
+		}
 	]
 	//"limits": {
 	//"cpu_ms": 300000

@@ -5,7 +5,6 @@ import { NoticierosD1Repository } from "../../../../Infrastructure/NoticierosD1R
 import { Noticiero } from "../../../../Data/Models/Noticiero";
 import { AudioR2Repository } from "../../../../Infrastructure/NoticieroAudioR2Repository";
 import { NoticieroState } from "@/Data/Models/NoticieroState";
-import { pipelineNoticieroApproved } from "@/Data/Pipelines/PipelineNoticieroApproved";
 import { LatestNoticieroKVRepository } from "@/Infrastructure/LatestNoticieroKVRepository";
 import { AudioGenParams } from "@/Infrastructure/AudioGenerationWorkflow";
 import { env } from "cloudflare:workers";

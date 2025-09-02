@@ -23,11 +23,7 @@ export const pipelineNoticieroDraft = async (
   const noticias = await pipelineNoticias(fuentes)
   const notasFinsus: NotaFinsus[] = [];
   const guionAI = await generateGuionWithAI(noticias, notasFinsus, geminiAPIKey)
-  const guion = [
-    bienvenida.join("\n"),
-    guionAI,
-    despedida.join("\n")
-  ].join("\n\n");
+  const guion = guionAI;
   const noticiero: Noticiero = {
     id: v4UUID(),
     title: "Noticiero Finsus - " + new Date().toLocaleDateString("es-MX"),

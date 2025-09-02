@@ -4,6 +4,7 @@ import { RSSChanelRepository } from "./Infrastructure/RssChanelD1Repository";
 import { NoticierosD1Repository } from "./Infrastructure/NoticierosD1Repository";
 import { NotasFinsusD1Repository } from "./Infrastructure/NotasFinsusD1Repository";
 import { AudioGenerationWorkflow } from "./Infrastructure/AudioGenerationWorkflow";
+import { DurableAudioGenerator } from "./Infrastructure/DurableAudioGenerator";
 
 export default {
   fetch: honoApp.fetch,
@@ -17,4 +18,4 @@ export default {
   },
 };
 
-export { AudioGenerationWorkflow }
+export { AudioGenerationWorkflow, DurableAudioGenerator }

@@ -40,12 +40,11 @@
     "SUSANA: Que tengan un excelente día."
   ],
   "bienvenida": [
-    "FINEAS: Bienvenidos al Noticiero Finsus.",
-    "SUSANA: Donde cada minuto cuenta en el pulso de la economía.",
-    "FINEAS: Iniciamos el dia con la información más relevante del mundo de los negocios",
+    "SUSANA: Bienvenidos al Noticiero Finsus.",
+    "FINEAS: Donde cada minuto cuenta en el pulso de la economía.",
     "SUSANA: En nombre de Finsus, que democratiza los servicios financieros y acelera la reasignación de capital para financiar proyectos socialmente justos para Personas y Ambiente, les damos la más cordial bienvenida.",
-    "FINEAS: Soy FIN",
-    "SUSANA: Y yo soy SUS",
+    "FINEAS: Les saluda Fin",
+    "SUSANA: Bienvenidos, les saluda Sus",
     "FINEAS: Y esto es, Noticiero Finsus."
   ]
 }
