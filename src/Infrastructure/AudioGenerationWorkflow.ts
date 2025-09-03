@@ -39,9 +39,9 @@ export class AudioGenerationWorkflow extends WorkflowEntrypoint<Cloudflare.Env, 
                 parts.set(part, "");
             })
             await step.do("Iniciando generacion async de audio", async () => {
-                const id = this.env.AUDIO_GENERATOR.idFromName("generator");
+                const id = this.env.AUDIO_GENERATOR.idFromName(approvedNoticiero.id);
                 const stub = this.env.AUDIO_GENERATOR.get(id);
-                await stub.startAudioProceess(event.instanceId, parts, audioNoticiero.instruction.join("\n"), approvedNoticiero)
+                await stub.startAudioGen([...parts.values()], event.instanceId, approvedNoticiero.id);
             });
 
             await step.do("Esperando generacion de audio", {
@@ -52,17 +52,10 @@ export class AudioGenerationWorkflow extends WorkflowEntrypoint<Cloudflare.Env, 
             }, async () => {
                 console.info("Esperando eventos");
                 const result = await step.waitForEvent("Esperando eventos", {
-                    type: "audio-event",
+                    type: "audio-generated",
                     timeout: 600000,
                 });
-                if (result.payload) {
-                    const { success, message } = JSON.parse(result.payload as string);
-                    if (!success) {
-                        console.error(message);
-                        throw new Error(message);
-                    }
-                    console.info(message);
-                }
+                console.info("Audio Generado: ", result);
             })
 
             await step.do("Actualizando Noticiero", async () => {

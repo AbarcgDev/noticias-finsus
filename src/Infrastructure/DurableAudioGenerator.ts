@@ -1,10 +1,13 @@
 import { Noticiero } from "@/Data/Models/Noticiero";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, VideoCompressionQuality } from "@google/genai";
 import { DurableObject } from "cloudflare:workers";
 import * as lame from '@breezystack/lamejs';
 import { IAudioRepository } from "@/Repositories/IAudioRepository";
 import { AudioR2Repository } from "./NoticieroAudioR2Repository";
 import { Mp3Buffer } from "@/Data/Trasformations/TransformWAVToMP3";
+import { FINSUS_DOMAIN } from "@/Presentation/restApi/middlewares/validationJWT";
+import { importPKCS8, SignJWT } from "jose";
+import onError from "@/Presentation/restApi/middlewares/errorHandler";
 
 interface HookData {
     jobId: string,
@@ -13,271 +16,151 @@ interface HookData {
     timestamp: number,
 }
 
+const GOOGLE_TTS_LONG_ENDPOINT = `https://texttospeech.googleapis.com/v1beta1/projects/12345/locations/global:synthesizeLongAudio`;
+const GOOGLE_AUTH_ENDPOINT = 'https://www.googleapis.com/oauth2/v4/token';
+
+
 export class DurableAudioGenerator extends DurableObject<Env> {
     private readonly audioRepository: IAudioRepository;
-    private readonly chunksQeue: string[];
+    private authToken: string = "";
     constructor(ctx: DurableObjectState, env: Env) {
         super(ctx, env);
         this.audioRepository = new AudioR2Repository(this.env.NOTICIEROS_STORAGE);
-        this.chunksQeue = new Quw
     }
 
-    async startAudioProceess(
-        jobId: string,
-        parts: Map<string, string>,
-        instruction: string,
-        approvedNoticiero: Noticiero,
-    ) {
-        await this.ctx.storage.put(`job_${jobId}`, {
-            id: jobId,
-            status: 'processing',
-            startTime: Date.now()
-        });
-
-        this.processAudioGeneration(jobId, parts, instruction, approvedNoticiero)
-            .catch(async (error) => {
-                console.error(`Error en job ${jobId}:`, error);
-                const wf = await this.env.AUDIO_GEN_WORKFLOW.get(jobId);
-                await wf.sendEvent({
-                    type: "audio-event",
-                    payload: {
-                        success: false,
-                        message: "Generacion de audio fallida " + error.message,
-                    }
-                })
-            });
-
-        return { success: true, jobId };
-    }
-
-    async processAudioGeneration(jobId: string, parts: Map<string, string>, instruction: string, approvedNoticiero: Noticiero) {
+    async startAudioGen(parts: string[], workflowId: string, audioID: string) {
         try {
-            let idx = 1;
-            for (const [key, value] of parts) {
-                if (value !== "" && value !== "error") {
-                    console.info("Fragmento ya generado, omitiendo ----");
-                    continue;
-                }
-                console.info("Generando audio de parte: " + idx++);
-                const base64 = await this.generateAudioWithAI(
-                    instruction,
-                    key,
-                    this.env.GEMINI_API_KEY,
-                )
-                parts.set(key, base64);
-            }
+            this.authToken = await this.getAuthToken();
+            const reqBody = {
+                input: {
+                    text: "En infraestructura, la frontera entre Eagle Pass y Piedras Negras se prepara para duplicar la capacidad del Puente Internacional Número Dos, pasando de seis a doce carriles. El permiso presidencial de Estados Unidos para este proyecto fue otorgado el veinte de junio de dos mil veinticinco. Esta obra busca agilizar el cruce de transporte de carga y pasajeros, además de reducir los tiempos de espera y atender la creciente demanda del comercio exterior. Las aduanas mexicanas en Piedras Negras ya se encuentran modernizadas para esta expansión, informa El Financiero"
+                },
+                voice: {
+                    languageCode: 'es-US',
+                    name: "es-US-Chirp3-HD-Algenib"
+                },
+                audioConfig: {
+                    audioEncoding: 'LINEAR16'
+                },
+                output_gcs_uri: `gs://${this.env.AUDIO_BUCKET_NAME}/${audioID}.wav`
+            };
 
-            const bienvenida = JSON.parse(await this.env.LATEST_NOTICIERO_ST.get("bienvenida") ?? "")
-            const despedida = JSON.parse(await this.env.LATEST_NOTICIERO_ST.get("despedida") ?? "")
-            const PCMs = [...bienvenida, ...parts.values(), ...despedida];
-            const buffers = PCMs.map((pcm) => this.fbase64ToUint8Array(pcm));
-            const totalLength = buffers.reduce((acc, arr) => acc + arr.length, 0);
-            const bufferBase64 = new Uint8Array(totalLength);
-
-            let offset = 0;
-            for (const chunk of buffers) {
-                bufferBase64.set(chunk, offset);
-                offset += chunk.length;
-            }
-
-            console.info("Creando WAV");
-            const audioWav = this.transformPCMToWAV(bufferBase64)
-            console.info("Creando MP3");
-            const audioMp3 = await this.transformWavToMp3(new Int16Array(audioWav.buffer));
-            console.info("Almacenando WAV");
-            await this.audioRepository.uploadAudioWAV(approvedNoticiero.id, audioWav);
-            console.info(("Audio WAV almacenado correctamente con id: " + approvedNoticiero.id));
-            console.info("Almacenando MP3");
-            await this.audioRepository.uploadAudioMp3(approvedNoticiero.id, audioMp3);
-            console.info(("Audio MP3 almacenado correctamente con id: " + approvedNoticiero.id));
-
-            await this.ctx.storage.put(`job_${jobId}`, {
-                id: jobId,
-                status: 'completed',
-                result: { success: true },
-                endTime: Date.now()
-            });
-
-            const wf = await this.env.AUDIO_GEN_WORKFLOW.get(jobId);
-            await wf.sendEvent({
-                type: "audio-event",
-                payload: JSON.stringify({
-                    success: true,
-                    message: "Audios generados correctamente",
-                })
-            })
-
-        } catch (e: any) {
-            console.error(e);
-        }
-    }
-
-    wait = (ms: number): Promise<void> => {
-        return new Promise((resolve) => setTimeout(resolve, ms));
-    }
-
-    generateAudioWithAI = async (
-        instruction: string,
-        content: string,
-        apiKey: string
-    ): Promise<string> => {
-        const maxRetries = 3;
-        let retryCount = 0;
-        let delay = 500; // 500 ms inicial
-
-        while (true) {
-            try {
-                const gemini = new GoogleGenAI({ apiKey });
-                const response = await gemini.models.generateContent({
-                    model: "gemini-2.5-flash-preview-tts",
-                    contents: [{ parts: [{ text: `${instruction}\n${content}` }] }],
-                    config: {
-                        responseModalities: ["AUDIO"],
-                        speechConfig: {
-                            multiSpeakerVoiceConfig: {
-                                speakerVoiceConfigs: [
-                                    {
-                                        speaker: "FINEAS",
-                                        voiceConfig: {
-                                            prebuiltVoiceConfig: { voiceName: "Charon" },
-                                        },
-                                    },
-                                    {
-                                        speaker: "SUSANA",
-                                        voiceConfig: {
-                                            prebuiltVoiceConfig: { voiceName: "Leda" },
-                                        },
-                                    },
-                                ],
-                            },
-                        },
-                        temperature: 0,
-                    },
-                });
-
-                const base64Data =
-                    response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data ?? "error";
-
-                // Liberar recursos si existen
-                (response as any).dispose?.();
-                (gemini as any).dispose?.();
-
-                return base64Data;
-            } catch (e: any) {
-                retryCount++;
-                console.error(`Error al generar audio (intento ${retryCount}):`, e);
-
-                if (retryCount >= maxRetries) {
-                    throw new Error("No se pudo generar audio después de varios intentos");
-                }
-
-                console.info(`Reintentando en ${delay} ms...`);
-                await this.wait(delay);
-                delay *= 2; // Retardo exponencial en cada reintento
-            }
-        }
-    }
-
-
-    transformPCMToWAV = (
-        pcmData: Uint8Array,
-        channels = 1,
-        rate = 24000,
-        sampleWidth = 2
-    ): Uint8Array => {
-        const dataLength = pcmData.length;
-        const buffer = new ArrayBuffer(44 + dataLength);
-        const view = new DataView(buffer);
-
-        const writeString = (offset: number, str: string) => {
-            for (let i = 0; i < str.length; i++) {
-                view.setUint8(offset + i, str.charCodeAt(i));
-            }
-        };
-
-        // RIFF header
-        writeString(0, "RIFF");
-        view.setUint32(4, 36 + dataLength, true); // file length - 8
-        writeString(8, "WAVE");
-        writeString(12, "fmt ");
-        view.setUint32(16, 16, true); // PCM chunk size
-        view.setUint16(20, 1, true); // format = PCM
-        view.setUint16(22, channels, true);
-        view.setUint32(24, rate, true);
-        view.setUint32(28, rate * channels * sampleWidth, true); // byte rate
-        view.setUint16(32, channels * sampleWidth, true); // block align
-        view.setUint16(34, sampleWidth * 8, true); // bits per sample
-        writeString(36, "data");
-        view.setUint32(40, dataLength, true);
-
-        // Copiar PCM después del header
-        const wavBytes = new Uint8Array(buffer);
-        wavBytes.set(pcmData, 44);
-
-        return wavBytes;
-    };
-
-
-    transformWavToMp3 = async (wavBuffer16: Int16Array): Promise<Mp3Buffer> => {
-        // Parámetros de codificación: 
-        // 1. Número de canales (mono=1, estéreo=2)
-        // 2. Tasa de muestreo (kHz)
-        const mp3Encoder = new lame.Mp3Encoder(1, 24000, 128);
-
-        // Asignar el buffer para la salida del MP3
-        const mp3Data = [];
-
-        // Codificar el buffer WAV en bloques
-        const sampleBlockSize = 1152; // Un tamaño de bloque común para MP3
-        for (let i = 0; i < wavBuffer16.length; i += sampleBlockSize) {
-            const samples = wavBuffer16.subarray(i, i + sampleBlockSize);
-            const mp3buf = mp3Encoder.encodeBuffer(samples);
-            if (mp3buf.length > 0) {
-                mp3Data.push(mp3buf);
-            }
-        }
-
-        // Finalizar la codificación para escribir los últimos bytes
-        const finalMp3buf = mp3Encoder.flush();
-        if (finalMp3buf.length > 0) {
-            mp3Data.push(finalMp3buf);
-        }
-
-        // Concatenar todos los buffers del MP3 en uno solo
-        const finalMp3Buffer = new Uint8Array(mp3Data.flatMap(arr => Array.from(arr)));
-        return finalMp3Buffer
-    };
-
-    fbase64ToUint8Array = (base64: string): Uint8Array => {
-        const binaryString = atob(base64);
-        const len = binaryString.length;
-        const bytes = new Uint8Array(len);
-        for (let i = 0; i < len; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-        }
-        return bytes;
-    }
-
-    async sendWebhook(webhookUrl: string, data: HookData) {
-        try {
-            const response = await fetch(webhookUrl, {
+            const ttsLongResponse = await fetch(GOOGLE_TTS_LONG_ENDPOINT.replace('12345', this.env.GCP_PROJECT_NAME), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'User-Agent': 'CloudflareAudioProcessor/1.0'
+                    'Authorization': `Bearer ${this.authToken}`,
                 },
-                body: JSON.stringify(data)
+                body: JSON.stringify(reqBody),
+            });
+            const responseJson = await ttsLongResponse.json();
+
+            console.info(responseJson);
+
+            const operation = responseJson as any;
+            this.ctx.storage.put(operation.name, JSON.stringify({
+                status: "processing",
+            }))
+
+            console.info("Generando audio en " + operation.name);
+
+            this.pollOperation(operation.name, workflowId)
+
+            return {
+                code: 202,
+                msg: "Generando audio"
+            }
+        } catch (e) {
+            console.error("No se pudo iniciar generacion de audio");
+            console.error(e);
+            return {
+                code: 500,
+                msg: "Generando audio"
+            }
+        }
+    }
+
+    async pollOperation(operationName: string, workflowid: string) {
+        const url = `https://texttospeech.googleapis.com/v1/${operationName}`;
+
+        console.info("Consultando estado de audio: " + operationName);
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${this.authToken}`,
+            }
+        });
+        const operationStatus = await response.json() as any;
+        console.info(operationStatus);
+        if (operationStatus.done) {
+            console.info(`Operación ${operationName} finalizada.`);
+
+            await this.ctx.storage.put(operationName, JSON.stringify({
+                status: "completed",
+            }));
+
+            const parent = await this.env.AUDIO_GEN_WORKFLOW.get(workflowid);
+
+            await parent.sendEvent({
+                type: "audio-generated",
+                payload: {
+                    operation: operationName
+                }
             });
 
-            if (!response.ok) {
-                console.error(`Webhook failed: ${response.status} ${response.statusText}`);
-            } else {
-                console.info(`Webhook enviado exitosamente para job ${data.jobId}`);
-            }
-
-        } catch (error) {
-            console.error("Error enviando webhook:", error);
-            // No re-lanzar el error para no afectar el procesamiento principal
+        } else {
+            console.info(`Operación ${operationName} en curso. Porcentaje: ${operationStatus.metadata.progressPercentage} Reintentando en 60 segundos.`);
+            setTimeout(() => this.pollOperation(operationName, workflowid), 60000);
         }
+    }
+
+    async getAuthToken(): Promise<string> {
+        try {
+            const serviceAccountKey = JSON.parse(this.env.GCP)
+
+
+            // Crear el JWT para la autenticación
+            const now = Math.floor(Date.now() / 1000);
+            const privateKey = await importPKCS8(serviceAccountKey.private_key, 'RS256');
+
+            const jwt = await new SignJWT({
+                scope: 'https://www.googleapis.com/auth/cloud-platform',
+                aud: GOOGLE_AUTH_ENDPOINT,
+                exp: now + 3600,
+                iat: now,
+                iss: serviceAccountKey.client_email,
+                sub: serviceAccountKey.client_email,
+            })
+                .setProtectedHeader({ alg: 'RS256', typ: 'JWT' })
+                .sign(privateKey);
+
+            // Intercambiar el JWT por un token de acceso
+            const accessTokenResponse = await fetch(GOOGLE_AUTH_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+                    assertion: jwt,
+                }),
+            });
+            const responseJson = await accessTokenResponse.json() as any;
+            const { access_token } = responseJson;
+            return access_token;
+        } catch (e: any) {
+            console.error(e);
+            throw new Error(e);
+        }
+    }
+
+    transformToSSML(parts: string[]) {
+        return parts.map((part) => {
+            const [speaker, dialog] = part.split(":");
+            return `
+                <voice name='${speaker === "FINEAS" ? "es-US-Chirp3-HD-Algenib" : "es-US-Chirp3-HD-Algenib"}'>
+                    <p><s>${dialog}</s></p>
+                </voice>
+            `
+        });
     }
 }
